@@ -61,7 +61,18 @@
   "devDependencies": {
     "mocha": "*",
     "request": "*",
-    "wrench": "~1.5.1"
+    "wrench": "~1.5.1",
+    "karma-script-launcher": "0.0.2",
+    "karma-chrome-launcher": "0.0.2",
+    "karma-firefox-launcher": "0.0.3",
+    "karma-jasmine": "0.0.3",
+    "karma-requirejs": "0.0.2",
+    "karma-coffee-preprocessor": "0.0.3",
+    "karma-phantomjs-launcher": "0.0.2",
+    "karma": "~0.9.4",
+    "karma-ng-scenario": "0.0.2",
+    "grunt-shell": "~0.3.1",
+    "grunt-karma": "git+https://github.com/karma-runner/grunt-karma.git"
   },
   "optionalDependencies": {
     "coffee-script": "1.6.2"
