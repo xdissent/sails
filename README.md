@@ -37,7 +37,6 @@ The default port for Sails is 1337.  At this point if you visit <a href="http://
 
 Now, let's get Sails to do cool stuff.
 
-Additionally you can check out [generator-sails](https://github.com/colinwren/generator-sails) for [Yeoman](https://github.com/yeoman/yeoman). Note that this is still a WIP, not everything is expected to work yet.
 # Hello, Sails!
 
 To get Sails to say "Hello World!", you need only to change the view for the default home page in `views/home/index.ejs`.  But that doesn't really teach us a whole lot-- instead, let's create a new controller and have IT tell us hello.
@@ -169,8 +168,8 @@ Version, Dependencies and Compatibility
 Tested with node v0.8.22 and v0.10.x
 Sails is built on the rock-solid foundations of ExpressJS and Socket.io.  
 
-### [Roadmap](https://github.com/balderdashy/sails/wiki/roadmap)
-### [Changelog](https://github.com/balderdashy/sails/wiki/changelog)
+### [Roadmap](https://github.com/balderdashy/sails-wiki/blob/0.9/roadmap.md)
+### [Changelog](https://github.com/balderdashy/sails-wiki/blob/0.9/changelog.md)
 
 <br/>
 <br/>
