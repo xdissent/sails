@@ -4,10 +4,10 @@
  * By default, Sails controllers automatically bind routes for each of their functions.
  * Additionally, each controller will automatically bind routes for a CRUD API
  * controlling the model which matches its name, if one exists.
- * 
- * NOTE:	These settings are for the global configuration of controllers.	
- *			You may also override these settings on a per-controller basis
- *			by modifying the 'blueprints' object in your controllers
+ *
+ * NOTE:  These settings are for the global configuration of controllers.
+ *      You may also override these settings on a per-controller basis
+ *      by modifying the 'blueprints' object in your controllers
  *
  * For more information on controller configuration and blueprints, check out:
  * http://sailsjs.org/#documentation
@@ -49,13 +49,22 @@ module.exports.controllers = {
     rest: true,
 
 
+    // Enable JSONP callbacks on REST blueprints
+    //
+    // e.g. `jsonp: 'callback'` below would cause all blueprints to listen 
+    // for a parameter called `callback` and respond with JSONP whenever it is detected:
+    // `/user/find/:id?callback=?`
+    // `/user?name=ciaran&limit=10&callback=?`
+    jsonp: false,
+
+
     // If a blueprint route catches a request,
     // only match :id param if it's an integer
     //
-    // e.g.	only trigger route handler if requests look like:
-    //		get /user/8
+    // e.g. only trigger route handler if requests look like:
+    //    get /user/8
     // instead of:
-    //		get /user/a8j4g9jsd9ga4ghjasdha
+    //    get /user/a8j4g9jsd9ga4ghjasdha
     expectIntegerId: false
   }
 
