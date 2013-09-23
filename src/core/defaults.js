@@ -4,19 +4,23 @@ module.exports = function (appPath) {
   return {
 
     // Default hooks
-    hooks: {
-      request:      require('../hooks/request'),
-      orm:          require('../hooks/orm'),
-      views:        require('../hooks/views'),
-      controllers:  require('../hooks/controllers'),
-      sockets:      require('../hooks/sockets'),
-      pubsub:       require('../hooks/pubsub'),
-      policies:     require('../hooks/policies'),
-      csrf:         require('../hooks/csrf'),
-      cors:         require('../hooks/cors'),
-      i18n:         require('../hooks/i18n'),
-      http:         require('../hooks/http')
-    },
+    hooks: [
+      'bodyparser',
+      'wildcard'
+    ],
+    // hooks: {
+    //   request:      require('../hooks/request'),
+    //   orm:          require('../hooks/orm'),
+    //   views:        require('../hooks/views'),
+    //   controllers:  require('../hooks/controllers'),
+    //   sockets:      require('../hooks/sockets'),
+    //   pubsub:       require('../hooks/pubsub'),
+    //   policies:     require('../hooks/policies'),
+    //   csrf:         require('../hooks/csrf'),
+    //   cors:         require('../hooks/cors'),
+    //   i18n:         require('../hooks/i18n'),
+    //   http:         require('../hooks/http')
+    // },
 
     // // Default 404 (not found) handler
     // 404: function notFound (message, req, res) {
@@ -126,7 +130,7 @@ module.exports = function (appPath) {
     paths: {
       app:          appPath,
       config:       appPath + '/config',
-      tmp:          appPath + '/.tmp'
+      tmp:          appPath + '/.tmp',
       controllers:  appPath + '/api/controllers',
       models:       appPath + '/api/models',
       services:     appPath + '/api/services',

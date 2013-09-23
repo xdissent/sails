@@ -60,7 +60,8 @@
     "ejs-locals": "1.0.2",
     "connect-flash": "0.1.1",
     "pluralize": "0.0.5",
-    "consolidate": "~0.9.1"
+    "consolidate": "~0.9.1",
+    "dependable": "~0.2.5"
   },
   "devDependencies": {
     "mocha": "*",

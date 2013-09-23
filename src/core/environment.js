@@ -7,6 +7,5 @@ module.exports = function (overrides) {
   if (overrides.dev) env = 'development';
   if (overrides.env) env = overrides.env;
   if (overrides.environment) env = overrides.environment;
-  env = env || 'development';
-  process.env['NODE_ENV'] = env;
+  return env || 'development';
 };
