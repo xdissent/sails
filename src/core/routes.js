@@ -3,7 +3,7 @@ var _ = require('lodash');
 module.exports = function (http, middleware) {
 
   function Routes () {
-    this._routes = [];
+    this._routes = [{path: '/test', target: {view: 'test'}, verb: 'get'}];
     this._handlers = [this.defaultHandler.bind(this)];
     this.middleware = http.router;
   };
@@ -13,12 +13,7 @@ module.exports = function (http, middleware) {
   };
 
   Routes.prototype.bind = function (path, target, verb, name) {
-    var self = this;
-    this._handlers.forEach(function (handler) {
-      var routes = handler(path, target, verb, name);
-      if (_.isEmpty(routes)) return;
-      self._routes.push.apply(self._routes, [].concat(routes));
-    });
+    this._routes.push({path: path, target: target, verb: verb, name: name});
   };
 
   Routes.prototype.defaultHandler = function (path, target, verb, name) {
@@ -28,8 +23,15 @@ module.exports = function (http, middleware) {
   };
 
   Routes.prototype.build = function () {
+    var self = this;
     _.each(this._routes, function (route) {
-      http[route.verb || 'all'](route.path, route.target);
+      self._handlers.forEach(function (handler) {
+        var routes = handler(route);
+        if (_.isEmpty(routes)) return;
+        _.each([].concat(routes), function (r) {
+          http[r.verb || 'all'](r.path, r.target);
+        });
+      });
     });
   };
 

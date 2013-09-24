@@ -1,17 +1,12 @@
 module.exports = function (config, middleware, http) {
+  middleware.prepend(bodyParser);
+  return bodyParser;
 
-  if (!config.bodyParser) {
-    return false;
-  }
-
-  var bodyParser = function (req, res, next) {
+  function bodyParser (req, res, next) {
+    return next();
     if(req.bodyParserDisabled) {
       return next();
     }
     return http.bodyParser()(req, res, next);
-  };
-
-  middleware.prepend(bodyParser);
-
-  return bodyParser;
+  }
 };

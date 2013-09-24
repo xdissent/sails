@@ -14,13 +14,13 @@ module.exports = function (http, middleware, routes, hooks, config) {
   }
 
   var listen = null;
-  if (config.host) {
+  if (config.server.host) {
     listen = function (callback) {
-      server.listen(config.port, config.host, callback);
+      server.listen(config.server.port, config.server.host, callback);
     };
   } else {
     listen = function (callback) {
-      server.listen(config.port, callback);
+      server.listen(config.server.port, callback);
     };
   }
 

@@ -10,7 +10,7 @@ function Sails (overrides) {
 
 Sails.prototype.routes = function() {
   var server = this.container.get('server');
-  console.log(this.container.get('routes'));
+  console.log(this.container.get('http').routes);
 };
 
 Sails.prototype.middleware = function() {

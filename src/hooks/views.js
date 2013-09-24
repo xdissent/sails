@@ -1,20 +1,51 @@
 var _ = require('lodash'),
   path = require('path');
+  util = require('util'),
+  glob = require('glob'),
+  ExpressView = require('express/lib/view'),
+  utils = require('express/lib/utils'),
+  basename = path.basename,
+  dirname = path.dirname,
+  join = path.join,
+  globPath = function (path) {
+    return glob.sync(path, {nocase: true});
+  },
+  exists = function (path) {
+    return globPath(path).length > 0;
+  };
+
+  function View(name, options) {
+    ExpressView.call(this, name, options);
+  }
+
+  util.inherits(View, ExpressView);
+
+  View.prototype.lookup = function(path) {
+    var ext = this.ext;
+
+    // <path>.<engine>
+    if (!utils.isAbsolute(path)) path = join(this.root, path);
+    if (exists(path)) return globPath(path)[0];
+
+    // <path>/index.<engine>
+    path = join(dirname(path), basename(path, ext), 'index' + ext);
+    if (exists(path)) return globPath(path)[0];
+  };
 
 module.exports = function (http, config, moduleLoader, routes, middleware) {
 
   var views = loadViews();
   configure();
   routes.use(routeHandler);
-  middleware.use(resView);
+  middleware.insert_before(routes.middleware, resView);
   return views;
 
   function configure () {
     http.set('view', View);
     http.set('views', config.paths.views);
-    http.set('view engine', config.views.engine.ext);
+    http.set('view engine', config.views.engine);
 
-    if (config.views.engine.ext === 'ejs') {
+    if (config.views.engine === 'ejs') {
       http.engine('ejs', require('ejs-locals'));
     }
   }
@@ -86,7 +117,7 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
 
       viewPath = _.find(arguments, _.isString) || req.target.view;
       data = _.find(arguments, _.isPlainObject) || {};
-      cb = _.find(arguments, _.isFunction) || function () {};
+      cb = _.find(arguments, _.isFunction) || null
 
       if (!viewPath && req.target.controller && req.target.action) {
         viewPath = req.target.controller + '/' + req.target.action;
@@ -96,28 +127,27 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
 
       var layout = data.layout;
 
-      if (_.isEmpty(layout) || layout === true) {
+      if (_.isEmpty(layout)) {
         layout = config.views.layout;
       }
 
-      if (config.views.engine.ext !== 'ejs') {
+      if (config.views.engine !== 'ejs') {
         layout = false;
       }
 
       if (layout) {
-        var absLayoutPath = path.join(config.paths.views, layout),
+        if (layout === true) {
+          layout = config.paths.layout;
+        }
+        var absLayoutPath = path.resolve(config.paths.views, layout),
           absViewPath = path.join(config.paths.views, viewPath),
           relLayoutPath = path.relative(path.dirname(absViewPath), absLayoutPath);
         res.locals._layoutFile = relLayoutPath;
       }
 
-      return res.render(viewPath, data, function (err, rendered) {
-        if (err) return res.serverError(err);
-        cb();
-        _.extend(res.locals, data);
-        res.send(rendered);
-      });
-      
+      _.extend(res.locals, data);
+
+      return res.render(viewPath, data, cb);
     };
 
     next();

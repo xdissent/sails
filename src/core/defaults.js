@@ -6,7 +6,9 @@ module.exports = function (appPath) {
     // Default hooks
     hooks: [
       'bodyparser',
-      'wildcard'
+      'views',
+      'notfound',
+      'error'
     ],
     // hooks: {
     //   request:      require('../hooks/request'),
@@ -42,6 +44,11 @@ module.exports = function (appPath) {
     //   res.send(err, 400);
     // },
 
+    server: {
+      options: undefined,
+      port: 1337,
+      host: 'localhost'
+    },
 
     // Controller config
     controllers: {
