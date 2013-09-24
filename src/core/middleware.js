@@ -4,7 +4,7 @@ module.exports = function (http) {
 
   function Middleware () {
     this._middleware = [];
-  };
+  }
 
   Middleware.prototype.append = Middleware.prototype.use = function (mw, name) {
     mw.name = name;
@@ -37,7 +37,7 @@ module.exports = function (http) {
   Middleware.prototype.insert_after = function (after, mw, name) {
     var index = this.indexOf(after);
     if (index < 0) {
-      throw new Error('Invalid middlware');
+      throw new Error('Invalid middleware');
     }
     mw.name = name;
     this._middleware.splice(index + 1, 0, mw);
@@ -49,5 +49,5 @@ module.exports = function (http) {
     });
   };
 
-  return new Middleware;
-}
+  return new Middleware();
+};

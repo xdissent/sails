@@ -6,7 +6,7 @@ module.exports = function (http, middleware) {
     this._routes = [{path: '/test', target: {view: 'test'}, verb: 'get'}];
     this._handlers = [this.defaultHandler.bind(this)];
     this.middleware = http.router;
-  };
+  }
 
   Routes.prototype.use = function (handler) {
     this._handlers.push(handler);
@@ -35,7 +35,7 @@ module.exports = function (http, middleware) {
     });
   };
 
-  var routes = new Routes;
+  var routes = new Routes();
 
   middleware.use(routes.middleware);
 

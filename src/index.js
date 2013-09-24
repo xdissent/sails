@@ -6,7 +6,7 @@ function Sails (overrides) {
   var container = this.container = dependable.container();
   container.register('overrides', overrides || {});
   container.load(path.join(__dirname, 'core'));
-};
+}
 
 Sails.prototype.routes = function() {
   var server = this.container.get('server');

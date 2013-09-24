@@ -108,7 +108,7 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
       req.target.view = view;
       res.view();
     };
-  };
+  }
 
   function resView (req, res, next) {
     res.view = function (viewPath, data, cb) {
@@ -117,7 +117,7 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
 
       viewPath = _.find(arguments, _.isString) || req.target.view;
       data = _.find(arguments, _.isPlainObject) || {};
-      cb = _.find(arguments, _.isFunction) || null
+      cb = _.find(arguments, _.isFunction) || null;
 
       if (!viewPath && req.target.controller && req.target.action) {
         viewPath = req.target.controller + '/' + req.target.action;

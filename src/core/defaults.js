@@ -5,7 +5,14 @@ module.exports = function (appPath) {
 
     // Default hooks
     hooks: [
+      'metadata',
       'bodyparser',
+      'cookies',
+      'session',
+      'i18n',
+      'flash',
+      'params',
+      'qualifiers',
       'views',
       'notfound',
       'error'
@@ -101,7 +108,8 @@ module.exports = function (appPath) {
     i18n: {
       locales: ['en', 'es'],
       defaultLocale: 'en',
-      localesDirectory: '/config/locales'
+      updateFiles: false,
+      extension: '.json'
     },
 
 
@@ -148,7 +156,8 @@ module.exports = function (appPath) {
       templates:    appPath + '/assets/templates',
       dependencies: appPath + '/dependencies',
       views:        appPath + '/views',
-      layout:       appPath + '/views/layout.ejs'
+      layout:       appPath + '/views/layout.ejs',
+      locales:      appPath + '/config/locales'
     },
 
     // Default model properties
@@ -180,6 +189,14 @@ module.exports = function (appPath) {
     // HTTP cache configuration
     cache: {
       maxAge: 31557600000
+    },
+
+    cookies: {
+      secret: 'keyboard cat'
+    },
+
+    flash: {
+      unsafe: true
     },
 
     // Session store configuration
