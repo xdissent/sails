@@ -13,11 +13,35 @@ after(function (done) {
   server.close(done);
 });
 
+// // Old sails:
+// var request = require('supertest'),
+//   path = require('path'),
+//   Sails = require('../../lib/app'),
+//   sails = null, server = null;
+
+// before(function (done) {
+//   sails = new Sails();
+//   sails.lift({appPath: path.resolve(__dirname, '../fixtures/controllers')}, function () {
+//     server = sails.express.server;
+//     done();
+//   });
+// });
+
+// after(function (done) {
+//   sails.lower(done);
+// });
+
 describe('controller routes', function () {
   it('should not call index action for a string route without an explicit action', function (done) {
     request(server)
       .get('/controller/routes/string/implicit')
       .expect(404, done);
+  });
+
+  it('should call index action for a string route with a verb without an explicit action', function (done) {
+    request(server)
+      .get('/controller/routes/string/implicit/verb')
+      .expect(200, 'OK', done);
   });
 
   it('should call index action for a string route with an explicit action', function (done) {
@@ -30,6 +54,12 @@ describe('controller routes', function () {
     request(server)
       .get('/controller/routes/object/implicit')
       .expect(404, done);
+  });
+
+  it('should call index action for an object route with a verb without an explicit action', function (done) {
+    request(server)
+      .get('/controller/routes/object/implicit/verb')
+      .expect(200, 'OK', done);
   });
 
   it('should call index action for an object route with an explicit action', function (done) {

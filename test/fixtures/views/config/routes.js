@@ -1,9 +1,9 @@
 module.exports = {
   routes: {
-    '/view/routes/object/implicit': {view: 'home'},
-    '/view/routes/object/explicit': {view: 'home/index'},
     '/view/routes/string/implicit': 'home',
     '/view/routes/string/explicit': 'home/index',
+    '/view/routes/object/implicit': {view: 'home'},
+    '/view/routes/object/explicit': {view: 'home/index'},
     '/view/routes/missing': 'missing/view',
     '/view/helper/defined': function (req, res, next) {
       if (typeof res.view === 'function') return res.send(200, 'OK');

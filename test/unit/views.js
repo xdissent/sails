@@ -13,6 +13,24 @@ after(function (done) {
   server.close(done);
 });
 
+// // Old sails:
+// var request = require('supertest'),
+//   path = require('path'),
+//   Sails = require('../../lib/app'),
+//   sails = null, server = null;
+
+// before(function (done) {
+//   sails = new Sails();
+//   sails.lift({appPath: path.resolve(__dirname, '../fixtures/views')}, function () {
+//     server = sails.express.server;
+//     done();
+//   });
+// });
+
+// after(function (done) {
+//   sails.lower(done);
+// });
+
 describe('response view helper', function () {
   it('should define the view helper on the response object', function (done) {
     request(server)
