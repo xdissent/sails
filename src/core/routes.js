@@ -13,9 +13,23 @@ module.exports = function (http, middleware, config) {
     var self = this;
     _.each(config.routes, function (target, path) {
       path = path || '/*';
-      var verb = path.replace(/^([^\/]+)?(\s+)?(\/.*)$/, '$1') || 'all';
-      self._routes.push({path: path, target: target, verb: verb.toLowerCase()});
+      var detected = self.detectVerb(path);
+      self._routes.push({path: detected.path, target: target, verb: detected.verb});
     });
+  };
+
+  Routes.prototype.detectVerb = function(path) {
+    var re = /^(get|post|put|delete|trace|options|connect|patch|head)\s+/i;
+    var verb = _.last(path.match(re) || []);
+
+    if (verb) {
+      verb = verb.trim().toLowerCase();
+      path = path.replace(re, '');
+    } else {
+      verb = 'all';
+    }
+
+    return {verb: verb, path: path};
   };
 
   Routes.prototype.prependHandler = function (handler) {
