@@ -1,3 +1,4 @@
+
 var _ = require('lodash');
 
 module.exports = function (config, moduleLoader, routes) {
@@ -53,14 +54,9 @@ module.exports = function (config, moduleLoader, routes) {
       if (_.isPlainObject(policy)) {
         policy = policy[subtarget] || policy['*'] || mapping['*'];
       }
-      if (!policy) return nextRoute();
+      if (!policy) return next();
       
-      return chainPolicies(policy, req, res, nextRoute);
-
-      function nextRoute (err) {
-        if (err) return next(err);
-        next('route');
-      }
+      chainPolicies(policy, req, res, next);
     };
   }
 
@@ -69,8 +65,8 @@ module.exports = function (config, moduleLoader, routes) {
       return policies(req, res, next);
     }
     if (_.isEmpty(policies)) return next();
-    var policy = policies[0],
-      policies = policies.slice(1);
+    var policy = policies[0];
+    policies = policies.slice(1);
     return policy(req, res, function (err) {
       if (err) return next(err);
       chainPolicies(policies, req, res, next);

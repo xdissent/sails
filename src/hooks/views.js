@@ -112,8 +112,8 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
 
       var subview = null;
       if (view) {
-        subview = view.split('/')[1] || 'index'
-        view = view.split('/')[0]
+        subview = view.split('/')[1] || 'index';
+        view = view.split('/')[0];
       } else if (req.target.controller && req.target.action) {
         view = req.target.controller;
         subview = req.target.action;

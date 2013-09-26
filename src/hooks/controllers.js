@@ -33,11 +33,12 @@ module.exports = function (config, moduleLoader, routes) {
     } else if (route.target.controller) {
       controller = route.target.controller;
       action = route.target.action;
-      if (route.verb !== 'all') {
-        action = action || 'index';
-      }
     } else {
       return;
+    }
+
+    if (route.verb !== 'all') {
+      action = action || 'index';
     }
 
     if (_.isEmpty(controller), _.isEmpty(action)) return;
@@ -66,8 +67,8 @@ module.exports = function (config, moduleLoader, routes) {
       return actions(req, res, next);
     }
     if (_.isEmpty(actions)) return next();
-    var action = actions[0],
-      actions = actions.slice(1);
+    var action = actions[0];
+    actions = actions.slice(1);
     return action(req, res, function (err) {
       if (err) return next(err);
       chainControllerActions(actions, req, res, next);
