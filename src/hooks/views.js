@@ -36,8 +36,8 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
 
   var views = loadViews();
   configure();
-  routes.use(routeHandler);
-  middleware.insert_before(routes.middleware, resView);
+  routes.appendHandler(routeHandler);
+  middleware.insert_before(routes.middleware, view);
   return views;
 
   function configure () {
@@ -57,9 +57,9 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
       filter: /(.+)\..+$/,
       replaceExpr: null,
       dontLoad: true
-    }, function (err, _views) {
+    }, function (err, modules) {
       if (err) throw err;
-      views = _views;
+      views = modules;
     });
     return views;
   }
@@ -84,50 +84,54 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
     }
 
     if (_.isEmpty(view)) return;
-
+    view = view.toLowerCase();
     subview = (subview || 'index').toLowerCase();
-
-    // Look up appropriate view and make sure it exists
-    var viewMiddleware = views[view];
-
-    // Dereference subview if the top-level view middleware is actually an object
-    if (_.isPlainObject(viewMiddleware)) {
-      viewMiddleware = viewMiddleware[subview];
-    }
-
-    // Bail if there's no corresponding middleware
-    if (!viewMiddleware) return;
-
     return {path: route.path, target: serveView(view, subview), verb: route.verb};
   }
 
   function serveView (view, subview) {
-    view = view + (subview ? '/' + subview : '');
+    var fullView = view + (subview ? '/' + subview : '');
     return function (req, res, next) {
       req.target = req.target || {};
-      req.target.view = view;
+      req.target.view = fullView;
+
+      var viewMiddleware = views[view];
+      if (!viewMiddleware || subview && !viewMiddleware[subview]) return next();
       res.view();
     };
   }
 
-  function resView (req, res, next) {
-    res.view = function (viewPath, data, cb) {
+  function view (req, res, next) {
+    res.view = function (view, data, callback) {
+      var args = _.clone(arguments);
 
       req.target = req.target || {};
+      view = _.find(args, _.isString) || req.target.view;
+      data = _.find(args, _.isPlainObject) || {};
+      callback = _.find(args, _.isFunction) || null;
 
-      viewPath = _.find(arguments, _.isString) || req.target.view;
-      data = _.find(arguments, _.isPlainObject) || {};
-      cb = _.find(arguments, _.isFunction) || null;
-
-      if (!viewPath && req.target.controller && req.target.action) {
-        viewPath = req.target.controller + '/' + req.target.action;
+      var subview = null;
+      if (view) {
+        subview = view.split('/')[1] || 'index'
+        view = view.split('/')[0]
+      } else if (req.target.controller && req.target.action) {
+        view = req.target.controller;
+        subview = req.target.action;
       }
 
-      viewPath = viewPath.replace(/\/+$/, '');
+      if (!view) {
+        var err = new Error('Cannot determine path to view');
+        if (_.isFunction(callback)) return callback(err);
+        throw err;
+      }
+
+      if (subview) {
+        view = view + '/' + subview;
+      }
 
       var layout = data.layout;
 
-      if (_.isEmpty(layout)) {
+      if (layout !== false && _.isEmpty(layout)) {
         layout = config.views.layout;
       }
 
@@ -140,14 +144,14 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
           layout = config.paths.layout;
         }
         var absLayoutPath = path.resolve(config.paths.views, layout),
-          absViewPath = path.join(config.paths.views, viewPath),
+          absViewPath = path.join(config.paths.views, view),
           relLayoutPath = path.relative(path.dirname(absViewPath), absLayoutPath);
         res.locals._layoutFile = relLayoutPath;
       }
 
       _.extend(res.locals, data);
 
-      return res.render(viewPath, data, cb);
+      return res.render(view, data, callback);
     };
 
     next();

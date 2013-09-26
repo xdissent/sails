@@ -11,8 +11,9 @@ module.exports = function (_container, config, moduleLoader) {
     depth: 2
   }, function (err, hooks) {
     if (err) throw err;
-
-    _.merge(allHooks, hooks);
+    _.each(hooks, function (hook) {
+      allHooks[hook.globalId] = hook;
+    });
   });
 
   moduleLoader.optional({
@@ -22,7 +23,9 @@ module.exports = function (_container, config, moduleLoader) {
   }, function (err, hooks) {
     if (err) throw err;
 
-    _.merge(allHooks, hooks);
+    _.each(hooks, function (hook) {
+      allHooks[hook.globalId] = hook;
+    });
   });
 
   _.each(config.hooks, function (name) {

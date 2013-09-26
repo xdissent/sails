@@ -1,31 +1,53 @@
+var util = require('util'),
+  _ = require('lodash');
+
 module.exports = function (http, middleware, routes, hooks, config) {
-  
-  middleware.build();
-  routes.build();
 
   var usingSSL = config.server && config.server.key && config.server.cert,
-    createServer = usingSSL ? require('https').createServer : require('http').createServer;
+    BaseServer = usingSSL ? require('https').Server : require('http').Server;
 
-  var server = null;
-  if (config.server.options) {
-    server = createServer(config.server.options, http);
-  } else {
-    server = createServer(http);
+  function Server (options, listener) {
+    middleware.build();
+    routes.build();
+    var args = usingSSL ? [options, listener] : [listener];
+    BaseServer.apply(this, args);
   }
 
-  var listen = null;
-  if (config.server.host) {
-    listen = function (callback) {
-      server.listen(config.server.port, config.server.host, callback);
-    };
-  } else {
-    listen = function (callback) {
-      server.listen(config.server.port, callback);
-    };
-  }
+  util.inherits(Server, BaseServer);
 
-  return {
-    server: server,
-    listen: listen
+  Server.createServer = function(options, listener) {
+    if (_.isFunction(options)) {
+      listener = options;
+      options = {};
+    }
+    options = options || {};
+    return new Server(options, listener);
   };
+
+  var listen = Server.prototype.listen;
+
+  Server.prototype.listen = function(port, host, backlog, callback) {
+    if (port && !_.isNumber(port)) return listen.apply(this, arguments);
+    if (_.isNumber(host)) {
+      if (_.isFunction(backlog)) {
+        callback = backlog;
+      }
+      backlog = host;
+      host = null;
+    } else if (_.isFunction(host)) {
+      backlog = null;
+      callback = host;
+      host = null;
+    }
+    if (_.isFunction(backlog)) {
+      callback = backlog;
+      backlog = null;
+    }
+    port = port || config.server.port;
+    host = host || config.server.host;
+    callback = callback || function () {};
+    return listen.call(this, port, host, backlog, callback);
+  };
+
+  return Server.createServer(config.server.options, http);
 };

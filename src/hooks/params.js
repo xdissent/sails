@@ -1,10 +1,12 @@
 var _ = require('lodash');
 
-module.exports = function (config, middleware, bodyparser) {
-  middleware.insert_after(bodyparser, params);
+module.exports = function (config, middleware, bodyParser) {
+  middleware.insert_after(bodyParser, params);
   return params;
 
   function params (req, res, next) {
+    req.params = req.params || {};
+
     if (!_.isUndefined(req.params.all)) {
       return next();
     }
@@ -22,5 +24,7 @@ module.exports = function (config, middleware, bodyparser) {
         return allParams;
       }
     });
+
+    next();
   }
 };

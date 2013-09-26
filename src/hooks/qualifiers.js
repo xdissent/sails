@@ -1,5 +1,5 @@
-module.exports = function (middleware, bodyparser) {
-  middleware.insert_after(bodyparser, qualifiers);
+module.exports = function (middleware, bodyParser) {
+  middleware.insert_after(bodyParser, qualifiers);
   return qualifiers;
 
   function qualifiers (req, res, next) {

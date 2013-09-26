@@ -6,15 +6,17 @@ module.exports = function (appPath) {
     // Default hooks
     hooks: [
       'metadata',
-      'bodyparser',
+      'bodyParser',
       'cookies',
       'session',
       'i18n',
       'flash',
       'params',
       'qualifiers',
+      'controllers',
       'views',
-      'notfound',
+      'policies',
+      'notFound',
       'error'
     ],
     // hooks: {

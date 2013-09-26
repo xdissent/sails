@@ -25,4 +25,8 @@ Sails.prototype.lift = function() {
   });
 };
 
+Sails.prototype.server = function() {
+  return this.container.get('server');
+};
+
 module.exports = Sails;

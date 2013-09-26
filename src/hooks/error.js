@@ -1,5 +1,5 @@
-module.exports = function (middleware, notfound) {
-  middleware.insert_after(notfound, error);
+module.exports = function (middleware, notFound) {
+  middleware.insert_after(notFound, error);
   return error;
 
   function error (err, req, res, next) {
