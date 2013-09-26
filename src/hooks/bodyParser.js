@@ -1,6 +1,6 @@
 var express = require('express');
 
-module.exports = function (config, middleware, http) {
+module.exports = function (config, middleware) {
   middleware.prepend(bodyParser);
   return bodyParser;
 

@@ -7,8 +7,11 @@ module.exports = function (appPath) {
     hooks: [
       'metadata',
       'bodyParser',
+      'methodOverride',
       'cookies',
       'session',
+      'csrf',
+      'cors',
       'i18n',
       'flash',
       'params',
