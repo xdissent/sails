@@ -1,19 +1,28 @@
 /**
- * Default 403 (forbidden) handler
+ * Default 403 (Forbidden) middleware
  *
- * This handler can be invoked manually with `res.forbidden()`
+ * This middleware can be invoked from a controller or policy:
+ * res.forbidden( [message] )
  *
- * This handler can be used as a general-purpose handler for your generic "Unauthorized" and/or 
- * "Access Denied" logic.  It allows you to change code in one place and affect this type of logic
- * throughout your app.  Sometimes, you'll want custom 'Forbidden' behavior, and that's fine!
- * This feature is here for convenience in the general case.
  *
+ * @param {String|Object|Array} message
+ *      optional message to inject into view locals or JSON response
+ * 
  */
 
 module.exports[403] = function badRequest(message, req, res) {
 
+  /*
+   * NOTE: This function is Sails middleware-- that means that not only do `req` and `res`
+   * work just like their Express equivalents to handle HTTP requests, they also simulate
+   * the same interface for receiving socket messages.
+   */
+
+  var viewFilePath = '403';
+  var statusCode = 403;
+
   var result = {
-    status: 403
+    status: statusCode
   };
 
   // Optional message
@@ -26,11 +35,12 @@ module.exports[403] = function badRequest(message, req, res) {
     return res.json(result, result.status);
   }
 
-  // Otherwise, serve the `views/403.*` page
-  var view = '403';
-  res.render(view, result, function (err) {
-    if (err) return res.send(err, result.status);
-    res.render(view);
+  res.status(result.status).render(viewFilePath, result, function (err) {
+    // If the view doesn't exist, or an error occured, send json
+    if (err) { return res.json(result, result.status); }
+    
+    // Otherwise, serve the `views/403.*` page
+    res.render(viewFilePath);
   });
 
 };

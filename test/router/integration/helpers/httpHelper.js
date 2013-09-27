@@ -31,6 +31,21 @@ module.exports = {
 		sailsprocess.on('error',function(err) {
 			return callback(err);
 		});
+
+		// Catch stderr messages 
+		sailsprocess.stderr.on('data', function (data) {
+			// Change buffer to string, then error
+			var dataString = (data + '');
+
+			// Share error with user running tests
+			console.error(dataString);
+
+			// In some cases, fire cb w/ error (automatically failing test)
+			// var err = new Error( dataString );
+			// throw err;
+		});
+
+
 		sailsprocess.stdout.on('data',function(data) {
 
 			// Change buffer to string
@@ -39,9 +54,10 @@ module.exports = {
 			// Make request once server has sucessfully started
 			if (dataString.match(/Server lifted/)) {
 				sailsprocess.stdout.removeAllListeners('data');
+				sailsprocess.stderr.removeAllListeners('data');
 				setTimeout(function () {
 					request[method](options, function(err, response) {
-						if (err) callback(err);
+						if (err) return callback(err);
 
 						// Kill server process and return response
 						sailsprocess.kill();

@@ -61,7 +61,8 @@
     "connect-flash": "0.1.1",
     "pluralize": "0.0.5",
     "consolidate": "~0.9.1",
-    "dependable": "~0.2.5"
+    "dependable": "~0.2.5",
+    "pluralize": "0.0.5"
   },
   "devDependencies": {
     "mocha": "*",

@@ -71,15 +71,17 @@ module.exports = function (sails) {
 							viewPath: require('underscore.string').rtrim(sails.config.paths.views, '/'),
 							baseurl: '/' + entity
 						});
-						i++;
 
-						// if (options.actions.length !== i) {}
+						// Append a comma, unless this is the last
+						if (options.actions.length !== i) {
 							
-						// Always add a comma
-						fnString = ',\n\n' + fnString;
+							fnString = fnString + ',\n\n';
 
-						// Append the action to the code string
-						actions += fnString;
+							// Append the action to the code string
+							actions += fnString;
+						}
+						i++;
+							
 					});
 				}
 				return generate({

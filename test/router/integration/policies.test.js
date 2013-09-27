@@ -4,168 +4,220 @@ var appHelper = require('./helpers/appHelper');
 var path = require('path');
 var fs = require('fs');
 
-describe('Policies', function() {
-  var appName = 'testApp';
+describe('router :: ', function() {
 
-  before(function(done) {
-    appHelper.build(function(err) {
-      if(err) return done(err);
-      process.chdir(appName);
-      done();
-    });
-  });
+	describe('Policies', function() {
+		var appName = 'testApp';
 
-  after(function() {
-    process.chdir('../');
-    appHelper.teardown();
-  });
+		before(function(done) {
+			appHelper.build(function(err) {
+				// console.log('before chdir ' + appName + ', cwd was :: ' + process.cwd());
+				process.chdir(appName);
+				// console.log('after chdir ' + appName + ', new cwd is :: ' + process.cwd());
+				
+				if (err) return done(err);
+				done();
+			});
+		});
 
-  describe('an error in the policy callback', function() {
+		after(function() {
+			// console.log('before `chdir ../`' + ', cwd was :: ' + process.cwd());
+			process.chdir('../');
+			// console.log('after `chdir ../`' + ', cwd was :: ' + process.cwd());
+			appHelper.teardown();
+		});
 
-    before(function() {
-      var config = "module.exports.policies = { '*': 'error_policy' };";
-      fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
-    });
+		describe('an error in the policy callback', function() {
 
-    it('should return a 500 status code', function(done) {
-      httpHelper.testRoute('get', {url: 'test', headers: {'Content-Type': 'application/json'}, json: true}, function(err, response) {
-        if (err) return done(new Error(err));
-        assert.equal(response.statusCode, 500);
-        done();
-      });
-    });
+			before(function() {
+				var config = "module.exports.policies = { '*': 'error_policy' };";
+				fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
+			});
 
-    it('should return default blueprint error', function(done) {
-      httpHelper.testRoute('get', {url: 'test', headers: {'Content-Type': 'application/json'}, json: true}, function(err, response) {
-        if (err) return done(new Error(err));
-        assert(response.body instanceof Object);
-        assert(response.body.errors instanceof Array);
-        assert.equal(response.body.errors[0].message, 'Test Error');
-        done();
-      });
-    });
-  });
+			it('should return a 500 status code', function(done) {
+				httpHelper.testRoute('get', {
+					url: 'test',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					json: true
+				}, function(err, response) {
+					if (err) return done(new Error(err));
+					assert.equal(response.statusCode, 500);
+					done();
+				});
+			});
 
-  describe('custom policies', function() {
+			it('should return default blueprint error', function(done) {
+				httpHelper.testRoute('get', {
+					url: 'test',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					json: true
+				}, function(err, response) {
+					if (err) return done(new Error(err));
+					assert(response.body instanceof Object);
+					assert(response.body.errors instanceof Array);
+					assert.equal(response.body.errors[0].message, 'Test Error');
+					done();
+				});
+			});
+		});
 
-    before(function() {
-      var policy = {
-        'test': {
-          'index': 'error_policy'
-        }
-      };
+		describe('custom policies', function() {
 
-      var config = "module.exports.policies = " + JSON.stringify(policy);
-      fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
-    });
+			before(function() {
+				var policy = {
+					'test': {
+						'index': 'error_policy'
+					}
+				};
 
-    describe('a get request to /:controller', function() {
+				var config = "module.exports.policies = " + JSON.stringify(policy);
+				fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
+			});
 
-      it('should return an error', function(done) {
+			describe('a get request to /:controller', function() {
 
-        httpHelper.testRoute('get', {url: 'test', headers: {'Content-Type': 'application/json'}, json: true}, function(err, response) {
-          if (err) return done(err);
-          assert.equal(response.body.errors[0].message, 'Test Error');
-          done();
-        });
-      });
-    });
+				it('should return a proper serverError with a message', function(done) {
 
-    describe('a get request to /:controller/:id', function() {
+					httpHelper.testRoute('get', {
+						url: 'test',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						json: true
+					}, function(err, response) {
+						if (err) return done(err);
 
-      it('should return a string', function(done) {
+						// Assert HTTP status code is correct
+						assert.equal(response.statusCode, 500);
 
-        httpHelper.testRoute('get', {url: 'test/1', headers: {'Content-Type': 'application/json'}, json: true}, function(err, response) {
-          if (err) return done(err);
+						// Assert that response has status: 500
+						assert.equal(response.body.status, 500);
 
-          assert.equal(response.body, "find");
-          done();
-        });
-      });
-    });
-  });
+						// Assert that response has the proper error message
+						assert.equal(response.body.errors[0].message, 'Test Error');
+						// console.log( 'body :: ',response.body );
+						done();
+					});
+				});
+			});
 
-  describe('chaining policies', function() {
+			describe('a get request to /:controller/:id', function() {
 
-    before(function() {
-      var policy = {
-        'test': {
-          'index': ['fake_auth', 'authenticated']
-        }
-      };
+				it('should return a string', function(done) {
 
-      var config = "module.exports.policies = " + JSON.stringify(policy);
-      fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
-    });
+					httpHelper.testRoute('get', {
+						url: 'test/1',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						json: true
+					}, function(err, response) {
+						if (err) return done(err);
 
-    describe('a get request to /:controller', function() {
+						assert.equal(response.body, "find");
+						done();
+					});
+				});
+			});
+		});
 
-      it('should return a string', function(done) {
+		describe('chaining policies', function() {
 
-        httpHelper.testRoute('get', {url: 'test', json: true}, function(err, response) {
-          if (err) return done(err);
+			before(function() {
+				var policy = {
+					'test': {
+						'index': ['fake_auth', 'authenticated']
+					}
+				};
 
-          assert.equal(response.body, "index");
-          done();
-        });
-      });
-    });
-  });
+				var config = "module.exports.policies = " + JSON.stringify(policy);
+				fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
+			});
 
-  describe('chaining wildcard "*" policies', function() {
+			describe('a get request to /:controller', function() {
 
-    before(function() {
-      var policy = {
-        'test': {
-          '*': ['fake_auth', 'authenticated']
-        }
-      };
+				it('should return a string', function(done) {
 
-      var config = "module.exports.policies = " + JSON.stringify(policy);
-      fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
-    });
+					httpHelper.testRoute('get', {
+						url: 'test',
+						json: true
+					}, function(err, response) {
+						if (err) return done(err);
 
-    describe('a get request to /:controller', function() {
+						assert.equal(response.body, "index");
+						done();
+					});
+				});
+			});
+		});
 
-      it('should return a string', function(done) {
+		describe('chaining wildcard "*" policies', function() {
 
-        httpHelper.testRoute('get', {url: 'test', json: true}, function(err, response) {
-          if (err) return done(err);
+			before(function() {
+				var policy = {
+					'test': {
+						'*': ['fake_auth', 'authenticated']
+					}
+				};
 
-          assert.equal(response.body, "index");
-          done();
-        });
-      });
-    });
-  });
+				var config = "module.exports.policies = " + JSON.stringify(policy);
+				fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
+			});
 
-  describe('policies for actions named with capital letters', function() {
+			describe('a get request to /:controller', function() {
 
-    before(function() {
-      var policy = {
-        '*' : false,
-        'test': {
-          '*': false,
-          'CapitalLetters': true
-        }
-      };
+				it('should return a string', function(done) {
 
-      var config = "module.exports.policies = " + JSON.stringify(policy);
-      fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
-    });
+					httpHelper.testRoute('get', {
+						url: 'test',
+						json: true
+					}, function(err, response) {
+						if (err) return done(err);
 
-    describe('a get request to /:controller', function() {
+						assert.equal(response.body, "index");
+						done();
+					});
+				});
+			});
+		});
 
-      it('should return a string', function(done) {
+		describe('policies for actions named with capital letters', function() {
 
-        httpHelper.testRoute('get', {url: 'test/CapitalLetters', json: true}, function(err, response) {
-          if (err) return done(err);
+			before(function() {
+				var policy = {
+					'*': false,
+					'test': {
+						'*': false,
+						'CapitalLetters': true
+					}
+				};
 
-          assert.equal(response.body, "CapitalLetters");
-          done();
-        });
-      });
-    });
-  });
+				var config = "module.exports.policies = " + JSON.stringify(policy);
+				fs.writeFileSync(path.resolve('../', appName, 'config/policies.js'), config);
+			});
+
+			describe('a get request to /:controller', function() {
+
+				it('should return a string', function(done) {
+
+					httpHelper.testRoute('get', {
+						url: 'test/CapitalLetters',
+						json: true
+					}, function(err, response) {
+						if (err) return done(err);
+
+						assert.equal(response.body, "CapitalLetters");
+						done();
+					});
+				});
+			});
+		});
+
+	});
+
 
 });
