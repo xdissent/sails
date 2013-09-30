@@ -2,7 +2,7 @@ var express = require('express'),
   _ = require('lodash');
 
 module.exports = function (config, middleware, cookies) {  
-
+  
   function Session () {
     this.middleware = express.session(this.config());
     middleware.insertAfter(cookies, this.middleware);
@@ -28,7 +28,7 @@ module.exports = function (config, middleware, cookies) {
   };
 
   Session.prototype.config = function() {
-    return _.extend({}, config.session, {store: this.store()});
+    return _.extend({}, {secret: config.cookies.secret}, config.session, {store: this.store()});
   };
 
   Session.prototype.get = function(sessionId, cb) {

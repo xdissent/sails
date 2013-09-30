@@ -1,13 +1,16 @@
-var io = require('socket.io'),
+var _ = require('lodash'),
+  io = require('socket.io'),
   RedisStore = require('socket.io/lib/stores/redis'),
   redis = require('socket.io/node_modules/redis'),
-  _ = require('lodash'),
   cookie = require('express/node_modules/cookie'),
   connect = require('express/node_modules/connect'),
   parseSignedCookie = connect.utils.parseSignedCookie,
-  Session = connect.middleware.session.Session;
+  Session = connect.middleware.session.Session,
+  BaseResponse = require('express/lib/response'),
+  BaseRequest = require('express/lib/request'),
+  util = require('util');
 
-module.exports = function (config, server, log, session, cookies) {
+module.exports = function (config, server, log, session, cookies, http) {
   var sockets = createServer();
   configureServer();
   return sockets;
@@ -45,7 +48,6 @@ module.exports = function (config, server, log, session, cookies) {
     });
 
     sockets.sockets.on('connection', defaultConnection);
-
     return sockets;
   }
 
@@ -60,11 +62,7 @@ module.exports = function (config, server, log, session, cookies) {
   }
 
   function configureAdapter (value) {
-    if (value === 'memory') return;
-    if (value === 'redis') return configureRedis();
-  }
-
-  function configureRedis () {
+    if (value !== 'redis') return;
     var host = config.sockets.host || '127.0.0.1',
       port = config.sockets.port || 6379,
       store = {
@@ -72,49 +70,30 @@ module.exports = function (config, server, log, session, cookies) {
         redisSub: createRedisConnection(port, host),
         redisClient: createRedisConnection(port, host)
       };
-
-    if (config.sockets.pass) {
-      store.redis = redis;
-    }
-
+    if (config.sockets.pass) store.redis = redis;
     sockets.set('store', new RedisStore(store));
   }
 
   function createRedisConnection(port, host) {
-    // Create a new client using the port, host and other options
     var client = redis.createClient(port, host, config.sockets);
-
-    // If a password is needed use client.auth to set it
-    if(config.sockets.pass) {
-      client.auth(config.sockets.pass, function(err) {
-        if (err) throw err;
-      });
-    }
-
-    // If a db is set select it on the client
+    if(config.sockets.pass) client.auth(config.sockets.pass);
     if (config.sockets.db) client.select(config.sockets.db);
     return client;
   }
 
   function defaultAuthorization (handshake, accept) {
     log.info('Socket is trying to connect');
-    if (handshake.query.cookie) {
-      handshake.headers.cookie = handshake.query.cookie;
-    }
+    var secret = config.session.secret || config.cookies.secret;
+    handshake.headers.cookie = handshake.query.cookie || handshake.headers.cookie;
     if (!handshake.headers.cookie) {
       return accept('No cookie transmitted with socket.io connection.', false);
     }
     handshake.cookie = cookie.parse(handshake.headers.cookie);
-    handshake.sessionID = parseSignedCookie(handshake.cookie[config.session.key], config.cookies.secret);
+    handshake.sessionID = parseSignedCookie(handshake.cookie[config.session.key], secret);
     session.get(handshake.sessionID, function (err, session) {
-      if (err) return accept('Error loading session from socket.io.', false);
-      if (!session) {
-        handshake.session = new Session(handshake, {cookie: {httpOnly: true}});
-        log.info('Generated new session for socket', handshake);
-        return accept(null, true);
-      }
+      if (err || !session) return accept('Error loading session from socket.io.', false);
       handshake.session = new Session(handshake, session);
-      log.info('Connected socket to existing session', handshake);
+      log.info('Connected socket to existing session');
       accept(null, true);
     });
   }
@@ -123,11 +102,26 @@ module.exports = function (config, server, log, session, cookies) {
     if (!socket.handshake || !socket.handshake.sessionID) {
       return log.error('No valid session for this socket');
     }
-    var sessionKey = socket.handshake.sessionID;
-    session.get(sessionKey, function (err, session) {
-      if (err) return;
-      if (!_.isPlainObject(session)) session = {};
-      log.info('GOT DAT SESS');
-    })
+    socket.on('request', function (method, url, body, headers, callback) {
+      var req = {
+        __proto__: BaseRequest,
+        method: method,
+        ip: socket.handshake.address.address,
+        port: socket.handshake.address.port,
+        url: url,
+        socket: socket,
+        body: body,
+        headers: _.extend({cookie: socket.handshake.headers.cookie}, headers)
+      };
+
+      var res = {
+        __proto__: BaseResponse,
+        end: function (body) {
+          callback(this.statusCode, this._headers, body);
+        }
+      };
+      
+      http(req, res);
+    });
   }
 };
