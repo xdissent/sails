@@ -1,9 +1,10 @@
 var _ = require('lodash');
 
-module.exports = function (config, moduleLoader, routes) {
+module.exports = function (config, moduleLoader, middleware, router) {
 
   var controllers = loadControllers();
-  routes.appendHandler(routeHandler);
+  router.insertFilterBefore('default', controllerRoutesFilter);
+  middleware.insertAfter(router.middleware, serveControllerAction);
   return controllers;
 
   function loadControllers () {
@@ -19,47 +20,32 @@ module.exports = function (config, moduleLoader, routes) {
     return controllers;
   }
 
-  function routeHandler (route) {
-    if (!route.target || !(_.isString(route.target) || route.target.controller)) {
-      return;
-    }
-
-    var controller = null, action = null;
-    if (_.isString(route.target)) {
-      var parsed = route.target.match(/^([^.]+)\.?([^.]*)?$/);
-      if (!parsed) return;
-      controller = parsed[1].replace(/Controller$/, '');
-      action = parsed[2];
-    } else if (route.target.controller) {
-      controller = route.target.controller;
-      action = route.target.action;
-    } else {
-      return;
-    }
-
-    if (route.verb !== 'all') {
-      action = action || 'index';
-    }
-
-    if (_.isEmpty(controller), _.isEmpty(action)) return;
-    controller = controller.toLowerCase();
-    action = action.toLowerCase();
-    return {path: route.path, target: serveControllerAction(controller, action), verb: route.verb};
+  function controllerRoutesFilter (routes) {
+    return _(routes).map(routeFilter).flatten().compact().value();
   }
 
-  function serveControllerAction (controller, action) {
-    return function (req, res, next) {
-      req.target = req.target || {};
-      req.target.controller = controller;
-      req.target.action = action;
+  function routeFilter (route) {
+    if (!route || !route.target) return route;
+    if (_.isString(route.target)) {
+      var parsed = route.target.match(/^([A-z]+)\.?([A-z]*)?$/);
+      if (!parsed) return route;
+      route.target = {};
+      route.target.controller = parsed[1].replace(/Controller$/, '').toLowerCase();
+      route.target.action = (_.isEmpty(parsed[2]) ? 'index' : parsed[2]).toLowerCase();
+    } else if (route.target.controller) {
+      route.target.action = route.target.action || 'index';
+    }
+    return route;
+  }
 
-      var controllerMiddleware = controllers[controller];
-      if (!controllerMiddleware || !controllerMiddleware[action]) return next();
-      if (_.isArray(controllerMiddleware[action])) {
-        return chainControllerActions(controllerMiddleware[action], req, res, next);
-      }
-      return controllerMiddleware[action](req, res, next);
-    };
+  function serveControllerAction (req, res, next) {
+    if (!req.target || !req.target.controller || !req.target.action) return next();
+    var controller = controllers[req.target.controller];
+    if (!controller) return next();
+    var action = controller[req.target.action];
+    if (!action) return next();
+    if (_.isArray(action)) return chainControllerActions(action, req, res, next);
+    return action(req, res, next);
   }
 
   function chainControllerActions (actions, req, res, next) {

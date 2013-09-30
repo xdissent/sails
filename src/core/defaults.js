@@ -5,22 +5,27 @@ module.exports = function (appPath) {
 
     // Default hooks
     hooks: [
-      'metadata',
-      'bodyParser',
-      'methodOverride',
+      'static',
+      'adapters',
+      'models',
+      'sockets',
+      // 'metadata',
+      // 'bodyParser',
+      // 'methodOverride',
       'cookies',
       'session',
-      'csrf',
-      'cors',
-      'i18n',
-      'flash',
-      'params',
-      'qualifiers',
+      // 'csrf',
+      // 'cors',
+      // 'i18n',
+      // 'flash',
+      // 'params',
+      // 'qualifiers',
       'controllers',
+      'blueprints',
       'views',
       'policies',
-      'notFound',
-      'error'
+      // 'notFound',
+      // 'error'
     ],
     // hooks: {
     //   request:      require('../hooks/request'),
@@ -129,6 +134,11 @@ module.exports = function (appPath) {
       headers: 'content-type'
     },
 
+    watcher: {
+      timeout: 250,
+      maxTimeout: 1000
+    },
+
     // File upload settings
     fileUpload: {
       maxMB: 10
@@ -162,7 +172,8 @@ module.exports = function (appPath) {
       dependencies: appPath + '/dependencies',
       views:        appPath + '/views',
       layout:       appPath + '/views/layout.ejs',
-      locales:      appPath + '/config/locales'
+      locales:      appPath + '/config/locales',
+      blueprints:   appPath + '/api/blueprints'
     },
 
     // Default model properties

@@ -2,7 +2,7 @@ var _ = require('lodash');
 
 module.exports = function (overrides, defaults, environment, moduleLoader) {
   var configPath = overrides.paths && overrides.paths.config || defaults.paths.config,
-    config = _.merge({}, defaults);
+    config = _.clone(defaults);
 
   moduleLoader.aggregate({
     dirname: configPath,
@@ -12,8 +12,7 @@ module.exports = function (overrides, defaults, environment, moduleLoader) {
     identity: false
   }, function (err, appConfig) {
     if (err) throw err;
-
-    _.merge(config, appConfig);
+    merge(config, appConfig);
   });
 
   moduleLoader.aggregate({
@@ -22,15 +21,19 @@ module.exports = function (overrides, defaults, environment, moduleLoader) {
     identity: false
   }, function (err, localConfig) {
     if (err) throw err;
-
-    _.merge(config, localConfig);
+    merge(config, localConfig);
 
     if (localConfig[environment]) {
-      _.merge(config, localConfig[environment]);
+      merge(config, localConfig[environment]);
     }
   });
 
-  _.merge(config, overrides);
-
+  merge(config, overrides);
   return config;
+
+  function merge (dest, src) {
+    return _.merge(dest, src, function(a, b) {
+      return _.isArray(a) ? b : undefined;
+    });
+  }
 };

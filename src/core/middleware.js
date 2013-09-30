@@ -3,50 +3,64 @@ var _ = require('lodash');
 module.exports = function (http) {
 
   function Middleware () {
-    this._middleware = [];
   }
 
-  Middleware.prototype.append = Middleware.prototype.use = function (mw, name) {
-    mw.name = name;
-    this._middleware.push(mw);
-  };
-
-  Middleware.prototype.prepend = function (mw, name) {
-    mw.name = name;
-    this._middleware.unshift(mw);
-  };
-
-  Middleware.prototype.indexOf = function(nameOrMw) {
-    if (_.isString(nameOrMw)) {
-      return _.findIndex(this._middleware, function (mw) {
-        return mw.name === nameOrMw;
-      });
+  Middleware.prototype.use = function(route, fn, index) {
+    if (_.isFunction(route)) {
+      index = fn;
+      fn = route;
+      route = null;
     }
-    return this._middleware.indexOf(nameOrMw);
-  };
+    route = route || '/';
+    if (_.isUndefined(index) || _.isNull(index)) index = http.stack.length;
 
-  Middleware.prototype.insert_before = function (before, mw, name) {
-    var index = this.indexOf(before);
-    if (index < 0) {
-      throw new Error('Invalid middlware');
+    if (!_.isString(route)) throw new Error('Invalid middleware route');
+    if (!_.isFunction(fn)) throw new Error('Invalid middleware');
+    if (!_.isNumber(index) || index > http.stack.length || index < -1) {
+      throw new Error('Invalid middleware index');
     }
-    mw.name = name;
-    this._middleware.splice(index, 0, mw);
+
+    // Save the function name and add it to the http middleware temporarily.
+    var name = fn.name;
+    http.use(route, fn);
+
+    // Pull the middleware from the stack, store original and restore name.
+    var mw = http.stack.pop();
+    mw.handle.__middleware = fn;
+    mw.handle.name = name;
+
+    // Add the middleware back to the stack.
+    http.stack.splice(index, 0, mw);
   };
 
-  Middleware.prototype.insert_after = function (after, mw, name) {
-    var index = this.indexOf(after);
-    if (index < 0) {
-      throw new Error('Invalid middleware');
-    }
-    mw.name = name;
-    this._middleware.splice(index + 1, 0, mw);
+  Middleware.prototype.append = function (route, fn) {
+    if (!_.isFunction(fn)) fn = route, route = null;
+    this.use(route, fn);
   };
 
-  Middleware.prototype.build = function () {
-    this._middleware.forEach(function (mw) {
-      http.use(mw);
+  Middleware.prototype.prepend = function (route, fn) {
+    if (!_.isFunction(fn)) fn = route, route = null;
+    this.use(route, fn, this.indexOf('expressInit') + 1);
+  };
+
+  Middleware.prototype.insertBefore = function (before, route, fn) {
+    if (!_.isFunction(fn)) fn = route, route = null;
+    this.use(route, fn, this.indexOf(before));
+  };
+
+  Middleware.prototype.insertAfter = function (after, route, fn) {
+    if (!_.isFunction(fn)) fn = route, route = null;
+    this.use(route, fn, this.indexOf(after) + 1);
+  };
+
+  Middleware.prototype.indexOf = function(find) {
+    return _.findIndex(http.stack, function (mw) {
+      return mw.handle.name === find || mw.handle.__middleware === find || mw.handle === find;
     });
+  };
+
+  Middleware.prototype.clear = function() {
+    http.stack.length = 0;
   };
 
   return new Middleware();

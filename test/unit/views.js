@@ -5,7 +5,7 @@ var request = require('supertest'),
 
 before(function (done) {
   sails = new Sails({appPath: path.resolve(__dirname, '../fixtures/views')});
-  server = sails.server();
+  server = sails.container.get('server');
   server.listen(0, 'localhost', done);
 });
 

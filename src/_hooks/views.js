@@ -32,13 +32,12 @@ var _ = require('lodash'),
     if (exists(path)) return globPath(path)[0];
   };
 
-module.exports = function (http, config, moduleLoader, router, middleware) {
+module.exports = function (http, config, moduleLoader, routes, middleware) {
 
   var views = loadViews();
   configure();
-  router.insertFilterBefore('default', viewRoutesFilter);
-  middleware.insertBefore(router.middleware, view);
-  middleware.insertAfter(router.middleware, serveView);
+  routes.appendHandler(routeHandler);
+  middleware.insert_before(routes.middleware, view);
   return views;
 
   function configure () {
@@ -65,32 +64,41 @@ module.exports = function (http, config, moduleLoader, router, middleware) {
     return views;
   }
 
-  function viewRoutesFilter (routes) {
-    return _(routes).map(routeFilter).flatten().compact().value();
-  }
+  function routeHandler (route) {
+    if (!route.target || !(_.isString(route.target) || route.target.view)) {
+      return;
+    }
 
-  function routeFilter (route) {
-    if (!route || !route.target) return route;
+    var view = null, subview = null;
     if (_.isString(route.target)) {
       var parsed = route.target.match(/^([^\/]+)\/?([^\/]*)?$/);
-      if (!parsed) return route;
-      var subview = _.isEmpty(parsed[2]) ? 'index' : parsed[2];
-      route.target = {view: path.join(parsed[1], subview)};
+      if (!parsed) return;
+      view = parsed[1];
+      subview = parsed[2];
     } else if (route.target.view) {
-      var pieces = route.target.view.split('/'),
-        subview = _.isEmpty(pieces[1]) ? 'index' : pieces[1];
-      route.target.view = path.join(pieces[0], subview);
+      // Get view and subview from route
+      view = route.target.view.split('/')[0];
+      subview = route.target.view.split('/')[1];
+    } else if (route.target.controller) {
+      return;
     }
-    return route;
+
+    if (_.isEmpty(view)) return;
+    view = view.toLowerCase();
+    subview = (subview || 'index').toLowerCase();
+    return {path: route.path, target: serveView(view, subview), verb: route.verb};
   }
 
-  function serveView (req, res, next) {
-    if (!req.target || !_.isString(req.target.view)) return next();
-    var pieces = req.target.view.split('/'),
-      view = pieces[0],
-      subview = pieces[1];
-    if (!view || !subview || !views[view] || !views[view][subview]) return next();
-    res.view();
+  function serveView (view, subview) {
+    var fullView = view + (subview ? '/' + subview : '');
+    return function (req, res, next) {
+      req.target = req.target || {};
+      req.target.view = fullView;
+
+      var viewMiddleware = views[view];
+      if (!viewMiddleware || subview && !viewMiddleware[subview]) return next();
+      res.view();
+    };
   }
 
   function view (req, res, next) {
@@ -141,7 +149,7 @@ module.exports = function (http, config, moduleLoader, router, middleware) {
         res.locals._layoutFile = relLayoutPath;
       }
 
-      _.extend(res.locals, {title: config.appName}, data);
+      _.extend(res.locals, data);
 
       return res.render(view, data, callback);
     };

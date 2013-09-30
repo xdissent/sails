@@ -2,17 +2,16 @@ var _ = require('lodash'),
   path = require('path');
 
 module.exports = function (_container, config, moduleLoader) {
-
-  var allHooks = {};
+  var hooks = {};
 
   moduleLoader.optional({
     dirname: path.resolve(__dirname, '../hooks'),
     filter: /^(.+)\.(js|coffee)$/,
     depth: 2
-  }, function (err, hooks) {
+  }, function modulesLoaded (err, modules) {
     if (err) throw err;
-    _.each(hooks, function (hook) {
-      allHooks[hook.globalId] = hook;
+    _.each(modules, function (hook) {
+      hooks[hook.globalId] = hook;
     });
   });
 
@@ -20,32 +19,35 @@ module.exports = function (_container, config, moduleLoader) {
     dirname: config.paths.hooks,
     filter: /^(.+)\.(js|coffee)$/,
     depth: 2
-  }, function (err, hooks) {
+  }, function modulesLoaded (err, modules) {
     if (err) throw err;
 
-    _.each(hooks, function (hook) {
-      allHooks[hook.globalId] = hook;
+    _.each(modules, function (hook) {
+      hooks[hook.globalId] = hook;
     });
   });
 
   _.each(config.hooks, function (name) {
-    if (!_.isFunction(allHooks[name])) {
+    if (!_.isFunction(hooks[name])) {
       throw new Error('Invalid hook: ' + name);
     }
-    _container.register(name, allHooks[name]);
+    _container.register(name, hooks[name]);
   });
 
-  var hookLoader = function () {
-    var hooks = {};
-    _.each(config.hooks, function (name, index) {
-      hooks[name] = arguments[index];
-    });
-    return hooks;
-  };
-  hookLoader.toString = function () {
-    return 'function (' + config.hooks.join(', ') + ') {}';
-  };
+  hookLoader.toString = hookLoaderToString;
 
   _container.register('__hooks', hookLoader);
   return _container.get('__hooks');
+
+  function hookLoader () {
+    var hooks = {}, args = _.clone(arguments);
+    _.each(config.hooks, function (name, index) {
+      hooks[name] = args[index];
+    });
+    return hooks;
+  }
+
+  function hookLoaderToString () {
+    return 'function (' + config.hooks.join(', ') + ') {}';
+  }
 };

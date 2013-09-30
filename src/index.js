@@ -6,27 +6,24 @@ function Sails (overrides) {
   var container = this.container = dependable.container();
   container.register('overrides', overrides || {});
   container.load(path.join(__dirname, 'core'));
+  container.get('hooks');
 }
 
-Sails.prototype.routes = function() {
+Sails.prototype.lift = function () {
   var server = this.container.get('server');
-  console.log(this.container.get('http').routes);
-};
-
-Sails.prototype.middleware = function() {
-  var server = this.container.get('server');
-  console.log(this.container.get('middleware'));
-};
-
-Sails.prototype.lift = function() {
-  var server = this.container.get('server');
+  console.log(this.container.get('http').stack);
   server.listen(function () {
     console.log('Listening');
   });
 };
 
-Sails.prototype.server = function() {
-  return this.container.get('server');
+Sails.prototype.lower = function () {
+  var server = this.container.get('server');
+  server.close();
+};
+
+Sails.cli = function () {
+  require('./cli').apply(null, arguments);
 };
 
 module.exports = Sails;

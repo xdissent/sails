@@ -38,7 +38,7 @@
     "i18n": "0.4.1",
     "optimist": "0.3.4",
     "fs-extra": "0.5.0",
-    "lodash": "1.2.1",
+    "lodash": "2.2.0",
     "glob": "3.1.14",
     "underscore.string": "2.3.0",
     "include-all": "~0.1.0",
@@ -62,7 +62,8 @@
     "pluralize": "0.0.5",
     "consolidate": "~0.9.1",
     "dependable": "~0.2.5",
-    "pluralize": "0.0.5"
+    "chokidar": "~0.6.3",
+    "commander": "~2.0.0"
   },
   "devDependencies": {
     "mocha": "*",

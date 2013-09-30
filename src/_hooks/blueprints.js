@@ -2,16 +2,13 @@ var _ = require('lodash'),
   path = require('path'),
   pluralize = require('pluralize');
 
-module.exports = function (_container, config, middleware, controllers, moduleLoader, router, routeCompiler) {
+module.exports = function (_container, config, middleware, controllers, moduleLoader, routes, notFound) {
   var blueprints = loadBlueprints();
-  middleware.insertAfter(router.middleware, serveBlueprint);
+  middleware.insert_after(routes.middleware, serveBlueprint);
   loadBlueprintRoutes();
   return blueprints;
 
   function loadBlueprintRoutes () {
-    router.unroute(function (route) {
-      return route.target && route.target.blueprint;
-    });
     _.each(controllers, function (controller) {
       var prefix = controllerPrefix(controller);
       _.each(blueprintsForController(controller), function (blueprint) {
@@ -19,13 +16,16 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
         if (_.isFunction(blueprintRoutes)) {
           blueprintRoutes = blueprintRoutes(controller);
         }
-        _.each(routeCompiler.compile(blueprintRoutes, prefix), function (route) {
-          var target = {controller: controller.identity, action: route.target, blueprint: true};
-          router.route(route.method, route.route, target);
+        _.each(blueprintRoutes, function (action, route) {
+          var detected = routes.detectVerb(route),
+            target = {
+              controller: controller.identity,
+              action: action
+            };
+          routes.bind(path.join(prefix, detected.path), target, detected.verb);
         });
       });
     });
-    router.reload();
   }
 
   function loadBlueprints () {
@@ -70,9 +70,9 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
     return _container.get('__blueprints');
 
     function blueprintLoader () {
-      var blueprints = {}, args = _.clone(arguments);
+      var blueprints = {};
       _.each(names, function (name, index) {
-        blueprints[name] = args[index];
+        blueprints[name] = arguments[index];
       });
       return blueprints;
     }
@@ -86,11 +86,11 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
     if (!controller) return [];
     if (controller.blueprint) {
       var blueprintConfig = blueprintConfigForController(controller);
-      return _.compact(_.filter(config.blueprints, function (blueprint) {
+      return _compact(_.filter(config.blueprints, function (blueprint) {
         return blueprintConfig[blueprint] !== false;
       }));
     }
-    return _.compact(controller.blueprints || config.blueprints);
+    return _compact(controller.blueprints || config.blueprints);
   }
 
   function blueprintsForController (controller) {
@@ -100,14 +100,14 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
   }
 
   function serveBlueprint (req, res, next) {
-    if (!req.target || !req.target.controller || !req.target.action) return next();
+    if (!req.target.controller || !req.target.action) return next();
     var controller = controllers[req.target.controller];
     if (!controller || controller[req.target.action]) return next();
     var blueprint = _.findLast(blueprintsForController(controller), function (blueprint) {
       return _.isFunction(blueprint.controller && blueprint.controller[req.target.action]);
     });
     if (!blueprint) return next();
-    blueprint.controller[req.target.action](req, res, next);
+    blueprint[req.target.action](req, res, next);
   }
 
   function blueprintConfigForController (controller) {

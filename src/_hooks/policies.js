@@ -1,10 +1,10 @@
 
 var _ = require('lodash');
 
-module.exports = function (config, moduleLoader, router, middleware, controllers, views) {
+module.exports = function (config, moduleLoader, routes) {
   var policies = loadPolicies(),
     mapping = buildPolicyMap();
-  middleware.insertAfter(router.middleware, servePolicy);
+  routes.prependHandler(routeHandler);
   return policies;
 
   function loadPolicies () {
@@ -20,28 +20,44 @@ module.exports = function (config, moduleLoader, router, middleware, controllers
     return policies;
   }
 
-  function servePolicy (req, res, next) {
-    if (!req.target || !(req.target.controller || req.target.view)) return next();
-
-    var target = null,
-      subtarget = null;
-
-    if (req.target.controller) {
-      target = req.target.controller;
-      subtarget = req.target.action;
-    } else if (req.target.view) {
-      var pieces = req.target.view.split('/');
-      target = pieces[0];
-      subtarget = pieces[1];
+  function routeHandler (route) {
+    if (!(_.isString(route.target) || (route.target && (route.target.controller || route.target.view)))) {
+      return;
     }
 
-    var policy = mapping[target] || mapping['*'];
-    if (_.isPlainObject(policy)) {
-      policy = (subtarget && policy[subtarget]) || policy['*'] || mapping['*'];
+    var target = null, subtarget = null;
+    if (_.isString(route.target) || route.target.view) {
+      target = route.target.view || route.target;
+      var parsed = target.match(/^([^.\/]+)[\/.]?([^.\/]*)?$/);
+      if (!parsed) return;
+      target = parsed[1].replace(/Controller$/, '');
+      subtarget = parsed[2] || 'index';
+    } else if (route.target.controller) {
+      target = route.target.controller;
+      subtarget = route.target.action;
+      if (route.verb !== 'all') {
+        subtarget = subtarget || 'index';
+      }
+    } else {
+      return;
     }
-    if (!policy) return next();
-    
-    chainPolicies(policy, req, res, next);
+
+    if (_.isEmpty(target), _.isEmpty(subtarget)) return;
+    target = target.toLowerCase();
+    subtarget = subtarget.toLowerCase();
+    return {path: route.path, target: servePolicy(target, subtarget), verb: route.verb};
+  }
+
+  function servePolicy(target, subtarget) {
+    return function (req, res, next) {
+      var policy = mapping[target] || mapping['*'];
+      if (_.isPlainObject(policy)) {
+        policy = policy[subtarget] || policy['*'] || mapping['*'];
+      }
+      if (!policy) return next();
+      
+      chainPolicies(policy, req, res, next);
+    };
   }
 
   function chainPolicies(policies, req, res, next) {

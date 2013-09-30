@@ -4,8 +4,11 @@ var request = require('supertest'),
   sails = null, server = null;
 
 before(function (done) {
-  sails = new Sails({appPath: path.resolve(__dirname, '../fixtures/controllers')});
-  server = sails.server();
+  sails = new Sails({
+    appPath: path.resolve(__dirname, '../fixtures/controllers'),
+    hooks: ['controllers']
+  });
+  server = sails.container.get('server');
   server.listen(0, 'localhost', done);
 });
 
@@ -32,10 +35,10 @@ after(function (done) {
 // });
 
 describe('controller routes', function () {
-  it('should not call index action for a string route without an explicit action', function (done) {
+  it('should call index action for a string route without an explicit action', function (done) {
     request(server)
       .get('/controller/routes/string/implicit')
-      .expect(404, done);
+      .expect(200, 'OK', done);
   });
 
   it('should call index action for a string route with a verb without an explicit action', function (done) {
@@ -50,10 +53,10 @@ describe('controller routes', function () {
       .expect(200, 'OK', done);
   });
 
-  it('should not call index action for an object route without an explicit action', function (done) {
+  it('should call index action for an object route without an explicit action', function (done) {
     request(server)
       .get('/controller/routes/object/implicit')
-      .expect(404, done);
+      .expect(200, 'OK', done);
   });
 
   it('should call index action for an object route with a verb without an explicit action', function (done) {
@@ -68,10 +71,10 @@ describe('controller routes', function () {
       .expect(200, 'OK', done);
   });
 
-  it('should not call index action for a long string route without an explicit action', function (done) {
+  it('should call index action for a long string route without an explicit action', function (done) {
     request(server)
       .get('/controller/routes/string/long/implicit')
-      .expect(404, done);
+      .expect(200, 'OK', done);
   });
 
   it('should call index action for a long string route with an explicit action', function (done) {

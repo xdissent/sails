@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+var path = require('path');
+  fs   = require('fs'),
+  lib  = path.resolve(fs.realpathSync(__dirname), '../src'),
+  Sails = require(lib);
+
+Sails.cli(process.argv);
