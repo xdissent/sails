@@ -7,7 +7,7 @@ before(function (done) {
   sails = new Sails({
     appPath: path.resolve(__dirname, '../fixtures/blueprints'),
     blueprints: ['test'],
-    hooks: ['models', 'controllers', 'blueprints'],
+    hooks: ['adapters', 'models', 'controllers', 'blueprints'],
     routes: {
       '/optional': 'home.optional',
       '/extra': 'home.test'
