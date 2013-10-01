@@ -2,7 +2,7 @@ var _ = require('lodash');
 
 module.exports = function (config, middleware, csrf, policies, routes) {
   middleware.insert_after(csrf, cors);
-  routes.prependHandler(routeHandler)
+  routes.prependHandler(routeHandler);
   return cors;
 
   function routeHandler (route) {

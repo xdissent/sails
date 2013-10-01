@@ -71,15 +71,16 @@ module.exports = function (http, config, moduleLoader, router, middleware) {
 
   function routeFilter (route) {
     if (!route || !route.target) return route;
+    var parsed, subview;
     if (_.isString(route.target)) {
-      var parsed = route.target.match(/^([^\/]+)\/?([^\/]*)?$/);
+      parsed = route.target.match(/^([^\/]+)\/?([^\/]*)?$/);
       if (!parsed) return route;
-      var subview = _.isEmpty(parsed[2]) ? 'index' : parsed[2];
+      subview = _.isEmpty(parsed[2]) ? 'index' : parsed[2];
       route.target = {view: path.join(parsed[1], subview)};
     } else if (route.target.view) {
-      var pieces = route.target.view.split('/'),
-        subview = _.isEmpty(pieces[1]) ? 'index' : pieces[1];
-      route.target.view = path.join(pieces[0], subview);
+      parsed = route.target.view.split('/');
+      subview = _.isEmpty(parsed[1]) ? 'index' : parsed[1];
+      route.target.view = path.join(parsed[0], subview);
     }
     return route;
   }

@@ -1,26 +1,23 @@
-var Sails = require('../');
+var Sails = require('../'),
+  path = require('path');
 
 module.exports = function (program) {
   program
     .command('console')
-    .description('run teh sails console')
-    .option('--dev', 'Use development environment')
-    .option('--prod', 'Use production environment')
-    .option('-e, --environment <env>', 'Set environment')
-    .action(function (command) {
-      var overrides = {};
-      if (command.dev) overrides.dev = true;
-      if (command.prod) overrides.prod = true;
-      if (command.environment) overrides.environment = command.environment;
+    .description('Run the Sails console')
+    .option('-c, --coffee', 'Use CoffeeScript console')
+    .action(function (opts) {
 
-      global.sails = new Sails(overrides);
+      var sails = new Sails({
+          environment: program.environment,
+          appPath: path.resolve(program.app || '.'),
+          log: {level: program.verbose ? 'verbose' : undefined}
+        }),
+        prompt = 'sails (' + sails.environment + ')> ',
+        repl = opts.coffee ? require('coffee-script/lib/coffee-script/repl') : require('repl');
 
-      var server = sails.container.get('server'),
-        env = sails.container.get('environment'),
-        repl = require('repl').start('sails (' + env + ')> ');
-
-      repl.on('exit', function () {
-        server.close();
+      repl.start({prompt: prompt}).on('exit', function () {
+        sails.server.close();
         process.exit();
       });
     });

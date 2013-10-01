@@ -89,7 +89,7 @@ module.exports = function (config, http, middleware, watcher, routeCompiler) {
     return function serveTarget (req, res, next) {
       req.target = target;
       next();
-    }
+    };
   };
 
   Router.prototype.all = function (route, target) {
@@ -97,7 +97,7 @@ module.exports = function (config, http, middleware, watcher, routeCompiler) {
       this.route(method, route, target);
     }, this);
     return this;
-  }
+  };
 
   _.each(methods, function (method) {
     Router.prototype[method] = function (route, target) {

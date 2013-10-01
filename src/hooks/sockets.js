@@ -103,8 +103,7 @@ module.exports = function (config, server, log, session, cookies, http) {
       return log.error('No valid session for this socket');
     }
     socket.on('request', function (method, url, body, headers, callback) {
-      var req = {
-        __proto__: BaseRequest,
+      var req = Object.create(BaseRequest, {
         method: method,
         ip: socket.handshake.address.address,
         port: socket.handshake.address.port,
@@ -112,14 +111,13 @@ module.exports = function (config, server, log, session, cookies, http) {
         socket: socket,
         body: body,
         headers: _.extend({cookie: socket.handshake.headers.cookie}, headers)
-      };
+      });
 
-      var res = {
-        __proto__: BaseResponse,
+      var res = Object.create(BaseResponse, {
         end: function (body) {
           callback(this.statusCode, this._headers, body);
         }
-      };
+      });
       
       http(req, res);
     });

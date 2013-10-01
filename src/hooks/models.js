@@ -1,7 +1,7 @@
 var _ = require('lodash'),
   waterline = require('waterline');
 
-module.exports = function (config, moduleLoader, adapters) {
+module.exports = function (config, moduleLoader, adapters, globals) {
   var modelDefinitions = loadModelDefinitions(),
     models = loadModels();
   return models;
@@ -56,7 +56,8 @@ module.exports = function (config, moduleLoader, adapters) {
       collection = model;
     });
 
-    global[model.globalId || model.identity] = collection;
+    var globalId = model.globalId || model.identity;
+    globals.globalize(globalId, collection);
 
     return collection;
   }

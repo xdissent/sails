@@ -58,11 +58,10 @@ module.exports = function (config, http, router) {
     return listen.call(this, port, host, backlog, callback);
   };
 
-  Server.prototype.close = function () {
-    if (this.listening) {
-      BaseServer.prototype.close.apply(this, arguments);
-      this.listening = false;
-    }
+  Server.prototype.close = function (callback) {
+    if (!this.listening) return (callback || function () {})();
+    BaseServer.prototype.close.apply(this, arguments);
+    this.listening = false;
   };
 
   return Server.createServer(config.server.options, http);

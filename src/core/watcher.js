@@ -1,6 +1,6 @@
 var path = require('path'),
   chokidar = require('chokidar'),
-  _ = require('lodash')
+  _ = require('lodash'),
   async = require('async');
 
 module.exports = function (config) {

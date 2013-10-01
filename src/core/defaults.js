@@ -144,17 +144,8 @@ module.exports = function (appPath) {
       maxMB: 10
     },
 
-    // Port to run this app on
-    port: 1337,
-
-    // Self-awareness: the host the server *thinks it is*
-    host: 'localhost',
-
     // Name of application for layout title
     appName: 'Sails',
-
-    // Environment to run this app in; one of: ["development", "production"]
-    environment: 'development',
 
     // Paths for application modules and key files
     paths: {
