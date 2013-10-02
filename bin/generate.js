@@ -28,6 +28,7 @@ module.exports = function (sails) {
 		 */
 
 		this.generateController = function (entity, options) {
+			var ext = options.ext || 'js';
 			var newControllerPath = sails.config.paths.controllers + '/' + utils.capitalize(entity) + 'Controller.js';
 			var newFederatedControllerPath = sails.config.paths.controllers + '/' + entity;
 
@@ -52,37 +53,26 @@ module.exports = function (sails) {
 						viewEngine: sails.config.views.engine,
 						viewPath: require('underscore.string').rtrim(sails.config.paths.views, '/'),
 						baseurl: '/' + entity,
-						suffix: '.js'
+						suffix: '.' + ext,
+						ext: ext
 					});
 				});
 			}
 			// Monolithic controller
 			else {
 				var actions = '';
-
 				// Add each requested function
 				if (options && options.actions) {
-					var i = 0;
-					_.each(options.actions, function(action) {
-						var fnString = utils.renderBoilerplateTemplate('action.ejs', {
+					actions = _.map(options.actions, function(action, i) {
+						return utils.renderBoilerplateTemplate('action.ejs', {
+							ext: ext,
 							action: action,
 							entity: entity,
 							viewEngine: sails.config.views.engine,
 							viewPath: require('underscore.string').rtrim(sails.config.paths.views, '/'),
 							baseurl: '/' + entity
 						});
-
-						// Append a comma, unless this is the last
-						if (options.actions.length !== i) {
-							
-							fnString = fnString + ',\n\n';
-
-							// Append the action to the code string
-							actions += fnString;
-						}
-						i++;
-							
-					});
+					}).join('\n\n');
 				}
 				return generate({
 					boilerplate: 'controller.ejs',
@@ -91,7 +81,8 @@ module.exports = function (sails) {
 					identity: entity.toLowerCase(),
 					pluralIdentity: pluralize(entity),
 					actions: actions,
-					suffix: 'Controller.js'
+					suffix: 'Controller.' + ext,
+					ext: ext
 				});
 			}
 		};
@@ -105,11 +96,11 @@ module.exports = function (sails) {
 		 */
 
 		this.generateModel = function (entity, options) {
-			var attributes = '';
+			var attributes = '', ext = options.ext || 'js';
 
 			// Add each requested attribute
 			if (options && options.attributes) {
-				_.each(options.attributes, function(attribute) {
+				attributes = _.map(options.attributes, function(attribute, i) {
 					attribute.name = utils.verifyValidEntity(attribute.name, 'Invalid attribute: ' + attribute.name);
 
 					var fnString = utils.renderBoilerplateTemplate('attribute.ejs', {
@@ -117,22 +108,25 @@ module.exports = function (sails) {
 						entity: entity,
 						viewEngine: sails.config.views.engine,
 						viewPath: require('underscore.string').rtrim(sails.config.paths.views, '/'),
-						baseurl: '/' + entity
+						baseurl: '/' + entity,
+						ext: ext
 					});
 
-					// If this is not the first attribute, add a comma
-					if (attributes !== '') {
-						fnString = ',\n\n' + fnString;
+					// Add commas after js attributes
+					if (ext === 'js' && i < options.attributes.length - 1) {
+						fnString = fnString + ',';
 					}
-					attributes += fnString;
-				});
+					return fnString;
+
+				}).join('\n\n');
 			}
 			return generate({
 				boilerplate: 'model.ejs',
 				prefix: sails.config.paths.models,
 				entity: utils.capitalize(entity),
 				attributes: attributes,
-				suffix: '.js'
+				suffix: '.' + ext,
+				ext: ext
 			});
 		};
 
@@ -144,11 +138,13 @@ module.exports = function (sails) {
 		 */
 
 		this.generateAdapter = function (entity, options) {
+			var ext = options.ext || 'js';
 			return generate({
 				boilerplate: 'adapter.ejs',
 				prefix: sails.config.paths.adapters,
 				entity: utils.capitalize(entity),
-				suffix: 'Adapter.js'
+				suffix: 'Adapter.' + ext,
+				ext: ext
 			});
 		};
 
@@ -161,6 +157,7 @@ module.exports = function (sails) {
 		 */
 
 		this.generateView = function (entity, options) {
+			var ext = options.ext || 'js';
 			var viewPath = sails.config.paths.views + '/' + entity;
 			utils.generateDir(viewPath);
 
@@ -172,7 +169,8 @@ module.exports = function (sails) {
 					prefix: viewPath,
 					entity: entity,
 					action: action,
-					suffix: '.' + sails.config.views.engine
+					suffix: '.' + sails.config.views.engine,
+					ext: ext
 				});
 			});
 		};

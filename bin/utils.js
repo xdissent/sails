@@ -8,7 +8,8 @@ module.exports = function(sails) {
 		async = require('async'),
 		ejs = require('ejs'),
 		fs = require('fs-extra'),
-		turtle = require('./turtleship');
+		turtle = require('./turtleship'),
+		path = require('path');
 
 
 	/**
@@ -123,7 +124,8 @@ module.exports = function(sails) {
 		 */
 
 		this.renderBoilerplateTemplate = function(boilerplate, data) {
-			var boilerplatePath = __dirname + '/boilerplates/templates/' + boilerplate;
+			var ext = data.ext || 'js';
+			var boilerplatePath = path.join(__dirname, 'boilerplates', ext, 'templates', boilerplate);
 			this.verifyExists(boilerplatePath, "Boilerplate (" + boilerplate + ") doesn't exist!");
 			var file = fs.readFileSync(boilerplatePath, 'utf8');
 			return ejs.render(file, data);
