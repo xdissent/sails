@@ -5,8 +5,11 @@ var request = require('supertest'),
   sails = null, server = null;
 
 before(function (done) {
-  sails = new Sails({appPath: path.resolve(__dirname, '../fixtures/cors')});
-  server = sails.server();
+  sails = new Sails({
+    hooks: ['cookies', 'session', 'csrf', 'cors', 'trace'],
+    appPath: path.resolve(__dirname, '../fixtures/cors')
+  });
+  server = sails.server;
   server.listen(0, 'localhost', done);
 });
 

@@ -24,6 +24,7 @@ module.exports = function (appPath) {
       'blueprints',
       'views',
       'policies',
+      'trace',
       // 'notFound',
       // 'error'
     ],

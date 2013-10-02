@@ -16,16 +16,18 @@ module.exports = function (program) {
     .option('-I, --no-npm-install', 'Do not install NPM dependencies')
     .action(function (dest, opts) {
 
-      var sails = new Sails({
-        hooks: [],
-        log: {level: program.verbose ? 'verbose' : undefined}
-      });
-
       dest = path.resolve(dest || '.');
       var name = path.basename(dest);
 
       if (!fs.existsSync(dest)) fs.mkdirsSync(dest);
       if (!isDir(dest)) throw new Error(dest + ' exists and is not a directory');
+
+      var sails = new Sails({
+        hooks: [],
+        environment: program.environment,
+        appPath: dest,
+        log: {level: program.verbose ? 'verbose' : undefined}
+      });
 
       sails.log.info('Building new Sails app in ' + dest + '...');
 

@@ -7,7 +7,7 @@ before(function (done) {
   sails = new Sails({
     appPath: path.resolve(__dirname, '../fixtures/middleware'),
   });
-  server = sails.server();
+  server = sails.server;
   server.listen(0, 'localhost', done);
 });
 

@@ -4,7 +4,10 @@ var request = require('supertest'),
   sails = null, server = null;
 
 before(function (done) {
-  sails = new Sails({appPath: path.resolve(__dirname, '../fixtures/views')});
+  sails = new Sails({
+    hooks: ['views'],
+    appPath: path.resolve(__dirname, '../fixtures/views')
+  });
   server = sails.container.get('server');
   server.listen(0, 'localhost', done);
 });

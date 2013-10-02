@@ -8,7 +8,7 @@ before(function (done) {
     appPath: path.resolve(__dirname, '../fixtures/controllers'),
     hooks: ['controllers']
   });
-  server = sails.container.get('server');
+  server = sails.server;
   server.listen(0, 'localhost', done);
 });
 
