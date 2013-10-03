@@ -2,16 +2,21 @@ var _ = require('lodash'),
   path = require('path'),
   pluralize = require('pluralize');
 
-module.exports = function (_container, config, middleware, controllers, moduleLoader, router, routeCompiler) {
+module.exports = function (_container, config, middleware, controllers, moduleLoader, router, routeCompiler, log) {
+
+  log = log.namespace('blueprints');
+
   var blueprints = loadBlueprints();
   middleware.insertAfter(router.middleware, serveBlueprint);
   loadBlueprintRoutes();
   return blueprints;
 
   function loadBlueprintRoutes () {
+    log.verbose('Unrouting previous blueprint routes');
     router.unroute(function (route) {
       return route.target && route.target.blueprint;
     });
+    log.verbose('Routing blueprint routes for all controllers');
     _.each(controllers, function (controller) {
       var prefix = controllerPrefix(controller);
       _.each(blueprintsForController(controller), function (blueprint) {

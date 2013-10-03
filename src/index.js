@@ -9,8 +9,6 @@ function Sails (overrides) {
   var container = this.container = dependable.container();
   container.register('overrides', overrides || {});
   container.load(Sails.corePath);
-  container.get('hooks');
-
   if (this.config.globals.sails) this.globals.globalize('sails', this);
 }
 
@@ -31,11 +29,22 @@ _.each(Sails.coreModules(), function (name) {
 });
 
 Sails.prototype.lift = function (cb) {
-  this.server.listen(cb);
+  var sails = this, start = new Date();
+  sails.log.verbose('Lifting sails');
+  sails.container.get('hooks');
+  sails.server.listen(function () {
+    sails.log.verbose('Sails lifted in', (new Date() - start) / 1000, 'seconds');
+    cb.apply(null, arguments);
+  });
 };
 
 Sails.prototype.lower = function (cb) {
-  this.server.close(cb);
+  var sails = this, start = new Date();
+  sails.log.verbose('Lowering sails');
+  sails.server.close(function () {
+    sails.log.verbose('Sails lowered in', (new Date() - start) / 1000, 'seconds');
+    cb.apply(null, arguments);
+  });
 };
 
 Sails.cli = function () {

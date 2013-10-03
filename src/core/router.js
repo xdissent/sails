@@ -1,7 +1,9 @@
 var _ = require('lodash'),
   methods = require('express/node_modules/methods');
 
-module.exports = function (config, http, middleware, watcher, routeCompiler) {
+module.exports = function (config, http, middleware, watcher, routeCompiler, log) {
+
+  log = log.namespace('router');
 
   function Router () {
     var defaultFilter = this._defaultFilter.bind(this);
@@ -10,7 +12,6 @@ module.exports = function (config, http, middleware, watcher, routeCompiler) {
     this._routes = [];
     this.middleware = http.router;
     middleware.use(this.middleware);
-    this.reload();
   }
 
   Router.prototype._defaultFilter = function (routes) {
@@ -28,6 +29,7 @@ module.exports = function (config, http, middleware, watcher, routeCompiler) {
     if (!_.isNumber(index) || index > this._filters.length || index < -1) {
       throw new Error('Invalid route filter index');
     }
+    log.verbose('Using router filter ' + (filter.name || 'anonymous') + ' at index ' + index);
     this._filters.splice(index, 0, filter);
     return this.reload();
   };
@@ -53,6 +55,7 @@ module.exports = function (config, http, middleware, watcher, routeCompiler) {
   };
 
   Router.prototype.reload = function () {
+    log.verbose('Reloading routes');
     var routes = routeCompiler.compile(config.routes).concat(_.cloneDeep(this._routes));
     this.clear();
     _.each(this.filter(routes), this._bind, this);
@@ -64,6 +67,7 @@ module.exports = function (config, http, middleware, watcher, routeCompiler) {
   };
 
   Router.prototype._bind = function (route) {
+    log.verbose('Binding route', route);
     http[route.method](route.route, route.target);
     return this;
   };
@@ -81,6 +85,7 @@ module.exports = function (config, http, middleware, watcher, routeCompiler) {
 
   Router.prototype.route = function (method, route, target) {
     if (method === 'all') return this.all(route, target);
+    log.verbose('Adding route for', route, 'with target', target);
     this._routes.push({method: method, route: route, target: target});
     return this;
   };

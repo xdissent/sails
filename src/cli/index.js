@@ -4,9 +4,9 @@ var _ = require('lodash'),
   environment = null,
   subcommands = [
     'new',
-    'generate',
     'lift',
-    'console'
+    'console',
+    'generate'
   ];
 
 function checkAmbiguous (env) {

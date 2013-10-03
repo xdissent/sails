@@ -13,6 +13,7 @@ module.exports = function (program) {
           appPath: path.resolve(program.app || '.'),
           log: {level: program.verbose ? 'verbose' : undefined}
         }),
+        hooks = sails.hooks,
         prompt = 'sails (' + sails.environment + ')> ',
         repl = opts.coffee ? require('coffee-script/lib/coffee-script/repl') : require('repl');
 

@@ -5,12 +5,15 @@ module.exports = function (program) {
   program
     .command('lift')
     .description('Start the Sails server')
-    .action(function () {
-
+    .option('-p, --port <port>', 'Listen on specific port')
+    .option('-h, --host <host>', 'Listen on specific host')
+    .action(function (opts) {
+      
       var sails = new Sails({
           environment: program.environment,
           appPath: path.resolve(program.app || '.'),
-          log: {level: program.verbose ? 'verbose' : undefined}
+          log: {level: program.verbose ? 'verbose' : undefined},
+          server: {port: opts.port, host: opts.host},
         }),
         cfg = sails.config,
         usingSSL = cfg.server && cfg.server.key && cfg.server.cert,
