@@ -1,10 +1,14 @@
 var _ = require('lodash');
 
-module.exports = function (config, middleware, csrf, router) {
+module.exports = function (config, middleware, csrf, router, log) {
+
+  log = log.namespace('cors');
+
   middleware.insertAfter(csrf, cors);
   router.prependFilter(corsRoutesFilter);
 
   config.watch('cors', function () {
+    log.verbose('Config changed');
     router.reload();
   });
 

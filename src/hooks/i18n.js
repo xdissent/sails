@@ -1,12 +1,19 @@
 var _i18n = require('i18n');
 
-module.exports = function (config, middleware, router) {
+module.exports = function (config, middleware, router, log) {
+
+  log = log.namespace('i18n');
+
   configureI18n();
-  config.watch(['paths', 'i18n'], configureI18n);
+  config.watch(['paths', 'i18n'], function () {
+    log('Config changed');
+    configureI18n();
+  });
   middleware.insertBefore(router.middleware, i18n);
   return i18n;
 
   function configureI18n () {
+
     _i18n.configure({
       locales: config.i18n.locales,
       directory: config.paths.locales,
