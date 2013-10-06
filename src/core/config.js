@@ -6,6 +6,7 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
 
   function Config () {
     events.EventEmitter.call(this);
+    this._keys = [];
     this.reload();
   }
 
@@ -76,35 +77,37 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
   };
 
   Config.prototype.update = function(config) {
-    var changed = [];
+    var changed = [], removed = [];
 
     _.forIn(config, function (val, key) {
       if (_.isEqual(this[key], val)) return;
+      this._keys.push(key);
       changed.push(key);
       var old = this[key];
       this[key] = val;
       this.emit('key', key, old, val);
     }, this);
 
-    _.forIn(this, function (val, key) {
-      if (_.has(config, key)) return;  
-      changed.push(key);
+    this._keys = _.compact(_.unique(_.flatten(this._keys)));
+
+    _.each(this._keys, function (key) {
+      if (_.has(config, key)) return;
+      removed.push(key);
+      var old = this[key];
       delete this[key];
-      this.emit('key', key, val, undefined);
+      this.emit('key', key, old, undefined);
     }, this);
 
-    if (!_.isEmpty(changed)) this.emit('all');
+    if (!_.isEmpty(removed)) {
+      this._keys = _.without.apply(_, [this._keys].concat(removed));
+    }
+
+    if (!_.isEmpty(changed) || !_.isEmpty(removed)) this.emit('all');
   };
 
-  var _watcher = null;
   Config.prototype._watch = function() {
-    if (_watcher) {
-      _watcher.close();
-    }
-    var self = this;
-    _watcher = watcher(this.paths.config, function () {
-      self.reload();
-    });
+    if (this._watcher) this._watcher.close();
+    this._watcher = watcher(this.paths.config, this.reload.bind(this));
   };
 
   Config.prototype.watchAll = function(cb) {
@@ -125,18 +128,6 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
       });
     }, this);
   };
-
-  // Config.prototype.watch = function (keys, cb, level, watchNew) {
-  //   var args = [].slice.apply(arguments);
-  //   args.unshift(this);
-  //   WatchJS.watch.apply(WatchJS, args);
-  // };
-
-  // Config.prototype.unwatch = function (keys, cb, level, watchNew) {
-  //   var args = arguments.slice();
-  //   args.unshift(this);
-  //   WatchJS.unwatch.apply(WatchJS, args);
-  // };
 
   function merge (dest, src) {
     return _.merge(dest, src, function(a, b) {

@@ -49,10 +49,11 @@ module.exports = function (program) {
           if (!type || type === 'model') {
             var options = {
               ext: ext,
-              attributes: _.map(attributes, function (attr) {
+              attributes: _.compact(_.map(attributes, function (attr) {
+                if (!_.isString(attr)) return null;
                 var pieces = attr.split(':');
                 return {name: pieces[0], type: pieces[1] || 'string'};
-              })
+              }))
             };
             generator.generateModel(name, options);
             sails.log.info('Generated model for ' + name);
