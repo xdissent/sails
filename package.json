@@ -16,9 +16,9 @@
     "orm",
     "socket.io"
   ],
-  "main": "./lib/index",
+  "main": "./src/index",
   "bin": {
-    "sails": "./bin/sails.js"
+    "sails": "./bin/sails"
   },
   "scripts": {
     "test": "mocha"
