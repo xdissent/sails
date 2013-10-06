@@ -1,13 +1,15 @@
 var _ = require('lodash'),
-  WatchJS = require('watchjs');
+  events = require('events'),
+  util = require('util');
 
 module.exports = function (overrides, defaults, environment, moduleLoader, watcher) {
 
-  var _watcher = null;
-
   function Config () {
+    events.EventEmitter.call(this);
     this.reload();
   }
+
+  util.inherits(Config, events.EventEmitter);
 
   Config.prototype._reload = function (path, target) {
     var config = _.clone(defaults);
@@ -67,15 +69,34 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
       path = config.paths.config;
     }
 
-    merge(this, config);
-    _.forIn(this, function (val, key) {
-      if (!_.has(config, key)) delete this[key];
-    }, this);
-
+    this.update(config);
     this._watch();
+
     return this;
   };
 
+  Config.prototype.update = function(config) {
+    var changed = [];
+
+    _.forIn(config, function (val, key) {
+      if (_.isEqual(this[key], val)) return;
+      changed.push(key);
+      var old = this[key];
+      this[key] = val;
+      this.emit('key', key, old, val);
+    }, this);
+
+    _.forIn(this, function (val, key) {
+      if (_.has(config, key)) return;  
+      changed.push(key);
+      delete this[key];
+      this.emit('key', key, val, undefined);
+    }, this);
+
+    if (!_.isEmpty(changed)) this.emit('all');
+  };
+
+  var _watcher = null;
   Config.prototype._watch = function() {
     if (_watcher) {
       _watcher.close();
@@ -86,17 +107,36 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
     });
   };
 
-  Config.prototype.watch = function (keys, cb, level, watchNew) {
-    var args = [].slice.apply(arguments);
-    args.unshift(this);
-    WatchJS.watch.apply(WatchJS, args);
+  Config.prototype.watchAll = function(cb) {
+    if (!_.isFunction(cb)) throw new Error('callback required');
+    this.on('all', cb);
   };
 
-  Config.prototype.unwatch = function (keys, cb, level, watchNew) {
-    var args = arguments.slice();
-    args.unshift(this);
-    WatchJS.unwatch.apply(WatchJS, args);
+  Config.prototype.watch = function (keys, cb) {
+    if (_.isFunction(keys)) {
+      cb = keys;
+      keys = null;
+    }
+    if (!_.isFunction(cb)) throw new Error('callback required');
+    if (_.isEmpty(keys)) return this.watchAll(cb);
+    _.each([].concat(keys), function (key) {
+      this.on('key', function (k) {
+        if (k === key) cb.apply(null, arguments);
+      });
+    }, this);
   };
+
+  // Config.prototype.watch = function (keys, cb, level, watchNew) {
+  //   var args = [].slice.apply(arguments);
+  //   args.unshift(this);
+  //   WatchJS.watch.apply(WatchJS, args);
+  // };
+
+  // Config.prototype.unwatch = function (keys, cb, level, watchNew) {
+  //   var args = arguments.slice();
+  //   args.unshift(this);
+  //   WatchJS.unwatch.apply(WatchJS, args);
+  // };
 
   function merge (dest, src) {
     return _.merge(dest, src, function(a, b) {

@@ -65,7 +65,7 @@ describe('config', function () {
     config.reload();
   });
 
-  it('should not emit events for changes deeper than specified level', function (done) {
+  xit('should not emit events for changes deeper than specified level', function (done) {
     overrides.test = {one: {two: 2}};
     config.reload();
     var watched = false;
@@ -80,7 +80,7 @@ describe('config', function () {
     }, 100);
   });
 
-  it('should emit events for changes below specified level', function (done) {
+  xit('should emit events for changes below specified level', function (done) {
     overrides.test = {one: {two: 2}};
     config.reload();
     var watched = false;

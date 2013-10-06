@@ -63,8 +63,7 @@
     "consolidate": "~0.9.1",
     "dependable": "git://github.com/xdissent/dependable.git#async-publish",
     "chokidar": "~0.6.3",
-    "commander": "~2.0.0",
-    "watchjs": "git://github.com/melanke/Watch.JS.git"
+    "commander": "~2.0.0"
   },
   "devDependencies": {
     "mocha": "*",
