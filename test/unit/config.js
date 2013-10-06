@@ -95,7 +95,7 @@ describe('config', function () {
     }, 100);
   });
 
-  it('should not emit events for new keys by default when watching entire config', function (done) {
+  it('should emit events for new keys by default when watching entire config', function (done) {
     var watched = false;
     config.watch(function () {
       watched = true;
@@ -103,9 +103,9 @@ describe('config', function () {
     overrides.test2 = 2;
     config.reload();
     setTimeout(function () {
-      assert.ok(!watched);
+      assert.ok(watched);
       done();
-    }, 100);
+    }, 10);
   });
 
   // There's a bug in WatchJS's clone() implementation that forces all attrs to be updated.
