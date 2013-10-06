@@ -3,6 +3,11 @@ var _ = require('lodash');
 module.exports = function (config, middleware, csrf, router) {
   middleware.insertAfter(csrf, cors);
   router.prependFilter(corsRoutesFilter);
+
+  config.watch('cors', function () {
+    router.reload();
+  });
+
   return cors;
 
   function corsRoutesFilter (routes) {
@@ -27,8 +32,9 @@ module.exports = function (config, middleware, csrf, router) {
 
     if (!enabled) return route;
 
-    route.target = serveCors(options);
-    return route;
+    var newRoute = _.clone(route);
+    newRoute.target = serveCors(options);
+    return [newRoute, route];
   }
 
   function serveCors (options) {

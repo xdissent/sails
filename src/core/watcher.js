@@ -1,14 +1,13 @@
 var path = require('path'),
   chokidar = require('chokidar'),
-  _ = require('lodash'),
-  async = require('async');
+  _ = require('lodash');
 
-module.exports = function (config) {
+module.exports = function (_container) {
   return watcher;
 
   function watcher (file, pattern, callback) {
     var args = _.clone(arguments);
-    file = path.resolve(config.paths.app, _.find(args, _.isString));
+    file = _.find(args, _.isString);
     pattern = _.find(args, _.isRegExp) || /.*/;
     callback = _.find(args, _.isFunction) || function () {};
 
@@ -18,7 +17,7 @@ module.exports = function (config) {
       files = [];
 
     watch.on('all', function (type, file, stat) {
-
+      var config = _container.get('config');
       if (!config.watcher) return;
       if (!pattern.test(file)) return;
       if (!_.contains(files, file)) files.push(file);

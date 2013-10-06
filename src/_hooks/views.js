@@ -149,7 +149,7 @@ module.exports = function (http, config, moduleLoader, routes, middleware) {
         res.locals._layoutFile = relLayoutPath;
       }
 
-      _.extend(res.locals, data);
+      res.locals(data);
 
       return res.render(view, data, callback);
     };

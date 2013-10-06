@@ -19,7 +19,8 @@ module.exports = function (program) {
         usingSSL = cfg.server && cfg.server.key && cfg.server.cert,
         url = (usingSSL ? 'https' : 'http') + '://' + cfg.server.host + ':' + cfg.server.port;
 
-      sails.lift(function () {
+      sails.lift(function (err) {
+        if (err) throw err;
         sails.log.ship();
         sails.log.info('Server lifted in `' + sails.appPath + '`');
         sails.log.info('To see your app, visit ' + url);

@@ -1,7 +1,7 @@
 var _ = require('lodash');
 
 module.exports = function (config, middleware, bodyParser) {
-  middleware.insert_after(bodyParser, params);
+  middleware.insertAfter(bodyParser, params);
   return params;
 
   function params (req, res, next) {

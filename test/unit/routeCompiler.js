@@ -1,7 +1,6 @@
 var Sails = require('../../src'),
   assert = require('assert'),
-  sails = new Sails(),
-  routeCompiler = sails.container.get('routeCompiler');
+  sails = new Sails();
 
 describe('route compiler', function () {
   var fn = function (req, res, next) {
@@ -75,7 +74,7 @@ describe('route compiler', function () {
 
   it('should compile routes', function () {
     // assert.equal(JSON.stringify(routeCompiler.compile(routes)), JSON.stringify(expected));
-    assert.deepEqual(routeCompiler.compile(routes), expected);
+    assert.deepEqual(sails.routeCompiler.compile(routes), expected);
   });
 
 });

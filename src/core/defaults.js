@@ -5,26 +5,27 @@ module.exports = function (appPath) {
 
     // Default hooks
     hooks: [
+      'grunt',
       'static',
       'adapters',
       'models',
       'sockets',
-      // 'metadata',
-      // 'bodyParser',
-      // 'methodOverride',
+      'metadata',
+      'bodyParser',
+      'methodOverride',
       'cookies',
       'session',
-      // 'csrf',
-      // 'cors',
-      // 'i18n',
-      // 'flash',
-      // 'params',
-      // 'qualifiers',
+      'csrf',
+      'cors',
+      'i18n',
+      'flash',
+      'params',
+      'qualifiers',
       'controllers',
       'blueprints',
       'views',
       'policies',
-      'trace',
+      // 'trace',
       // 'notFound',
       // 'error'
     ],
@@ -120,7 +121,8 @@ module.exports = function (appPath) {
       locales: ['en', 'es'],
       defaultLocale: 'en',
       updateFiles: false,
-      extension: '.json'
+      extension: '.json',
+      cookie: 'sails.locale'
     },
 
 
@@ -132,7 +134,8 @@ module.exports = function (appPath) {
       origin: '*',
       credentials: true,
       methods: 'GET, POST, PUT, DELETE, OPTIONS, HEAD',
-      headers: 'content-type'
+      headers: 'content-type',
+      allRoutes: false
     },
 
     watcher: {
@@ -403,7 +406,12 @@ module.exports = function (appPath) {
     },
 
     // SSL cert settings go here
-    ssl: {}
+    ssl: {},
+
+    grunt: {
+      tasks: ['default'],
+      gruntfile: undefined
+    }
 
   };
 };

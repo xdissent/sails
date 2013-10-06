@@ -85,6 +85,7 @@ module.exports = function (program) {
 
       setTimeout(function () {
         sails.log.info('New app created!');
+        process.exit();
       }, 100);
 
 

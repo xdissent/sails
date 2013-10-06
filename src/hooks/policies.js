@@ -1,7 +1,10 @@
 
 var _ = require('lodash');
 
-module.exports = function (config, moduleLoader, router, middleware, controllers, views) {
+module.exports = function (config, moduleLoader, router, middleware, log) {
+
+  log = log.namespace('policies');
+
   var policies = loadPolicies(),
     mapping = buildPolicyMap();
   middleware.insertAfter(router.middleware, servePolicy);
@@ -12,7 +15,8 @@ module.exports = function (config, moduleLoader, router, middleware, controllers
     moduleLoader.optional({
       dirname: config.paths.policies,
       filter: /(.+)\.(js|coffee)$/,
-      replaceExpr: null
+      replaceExpr: null,
+      force: true
     }, function modulesLoaded (err, modules) {
       if (err) throw err;
       policies = modules;
@@ -21,6 +25,7 @@ module.exports = function (config, moduleLoader, router, middleware, controllers
   }
 
   function servePolicy (req, res, next) {
+    log.verbose('Serving policy');
     if (!req.target || !(req.target.controller || req.target.view)) return next();
 
     var target = null,

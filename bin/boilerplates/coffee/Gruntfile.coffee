@@ -100,17 +100,17 @@ module.exports = (grunt) ->
   )
   
   # Get path to core grunt dependencies from Sails
-  depsPath = grunt.option("gdsrc") or "node_modules/sails/node_modules"
-  grunt.loadTasks depsPath + "/grunt-contrib-clean/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-copy/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-concat/tasks"
-  grunt.loadTasks depsPath + "/grunt-sails-linker/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-jst/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-watch/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-uglify/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-cssmin/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-less/tasks"
-  grunt.loadTasks depsPath + "/grunt-contrib-coffee/tasks"
+  depsPath = if grunt.file.exists('node_modules/sails') then 'node_modules/sails/' else '';
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-clean"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-copy"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-concat"
+  grunt.loadNpmTasks "#{depsPath}grunt-sails-linker"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-jst"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-watch"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-uglify"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-cssmin"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-less"
+  grunt.loadNpmTasks "#{depsPath}grunt-contrib-coffee"
   
   # Project configuration.
   grunt.initConfig

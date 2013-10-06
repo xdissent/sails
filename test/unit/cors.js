@@ -1,63 +1,126 @@
 var request = require('supertest'),
-  path = require('path'),
   assert = require('assert'),
   Sails = require('../../src'),
-  sails = null, server = null;
+  sails = null,
 
-before(function (done) {
-  sails = new Sails({
-    hooks: ['cookies', 'session', 'csrf', 'cors', 'trace'],
-    appPath: path.resolve(__dirname, '../fixtures/cors')
+  corsNone = function (req, res, next) {
+    res.send(200, 'OK');
+  },
+  corsTrue = function (req, res, next) {
+    res.send(200, 'OK');
+  },
+  corsFalse = function (req, res, next) {
+    res.send(200, 'OK');
+  };
+
+corsTrue.cors = true;
+corsFalse.cors = false;
+
+describe('cors', function () {
+
+  before(function (done) {
+    sails = new Sails({
+      hooks: ['cookies', 'session', 'csrf', 'cors'],
+      server: {port: 0, host: 'localhost'},
+      cors: {allRoutes: false},
+      routes: {
+        '/cors/none': corsNone,
+        '/cors/true': corsTrue,
+        '/cors/false': corsFalse
+      }
+    });
+    sails.lift(done);
   });
-  server = sails.server;
-  server.listen(0, 'localhost', done);
-});
 
-after(function (done) {
-  server.close(done);
-});
+  after(function (done) {
+    sails.lower(done);
+  });
 
-// // Old sails:
-// var request = require('supertest'),
-//   path = require('path'),
-//   Sails = require('../../lib/app'),
-//   sails = null, server = null;
+  describe('routes', function () {
+    it('should not set cors headers by default', function (done) {
+      request(sails.server)
+        .get('/cors/none')
+        .expect(200, 'OK')
+        .end(function (err, res) {
+          if (err) return done(err);
+          assert(typeof res.get('Access-Control-Allow-Origin') === 'undefined');
+          assert(typeof res.get('Access-Control-Allow-Credentials') === 'undefined');
+          assert(typeof res.get('Access-Control-Allow-Methods') === 'undefined');
+          assert(typeof res.get('Access-Control-Allow-Headers') === 'undefined');
+          done();
+        });
+    });
 
-// before(function (done) {
-//   sails = new Sails();
-//   sails.lift({appPath: path.resolve(__dirname, '../fixtures/cors')}, function () {
-//     server = sails.express.server;
-//     done();
-//   });
-// });
+    it('should set cors headers if cors route option is true', function (done) {
+      request(sails.server)
+        .get('/cors/true')
+        .expect('Access-Control-Allow-Origin', '*')
+        .expect('Access-Control-Allow-Credentials', 'true')
+        .expect(200, 'OK')
+        .end(function (err, res) {
+          if (err) return done(err);
+          assert(typeof res.get('Access-Control-Allow-Methods') === 'undefined');
+          assert(typeof res.get('Access-Control-Allow-Headers') === 'undefined');
+          done();
+        });
+    });
 
-// after(function (done) {
-//   sails.lower(done);
-// });
+    it('should unset cors headers if cors route option is false', function (done) {
+      request(sails.server)
+        .get('/cors/false')
+        .expect(200, 'OK')
+        .expect('Access-Control-Allow-Origin', '')
+        .expect('Access-Control-Allow-Credentials', '')
+        .expect('Access-Control-Allow-Methods', '')
+        .expect('Access-Control-Allow-Headers', '')
+        .expect(200, 'OK', done);
+    });
 
-describe('cors routes', function () {
-  it('should set cors headers', function (done) {
-    request(server)
-      .get('/cors/true')
-      .expect('Access-Control-Allow-Origin', '*')
-      .expect('Access-Control-Allow-Credentials', 'true')
-      .expect(200, 'OK')
-      .end(function (err, res) {
-        if (err) return done(err);
-        assert(typeof res.get('Access-Control-Allow-Methods') === 'undefined');
-        assert(typeof res.get('Access-Control-Allow-Headers') === 'undefined');
-        done();
+    describe('with config.cors.allRoutes', function () {
+      before(function (done) {
+        sails.overrides.cors.allRoutes = true;
+        sails.config.reload();
+        setTimeout(done, 100);
       });
-  });
 
-  it('should unset cors headers if cors route option is false', function (done) {
-    request(server)
-      .get('/cors/false')
-      .expect(200, 'OK')
-      .expect('Access-Control-Allow-Origin', '')
-      .expect('Access-Control-Allow-Credentials', '')
-      .expect('Access-Control-Allow-Methods', '')
-      .expect('Access-Control-Allow-Headers', '')
-      .expect(200, 'OK', done);
+      it('should set cors headers by default', function (done) {
+        request(sails.server)
+          .get('/cors/none')
+          .expect('Access-Control-Allow-Origin', '*')
+          .expect('Access-Control-Allow-Credentials', 'true')
+          .expect(200, 'OK')
+          .end(function (err, res) {
+            if (err) return done(err);
+            assert(typeof res.get('Access-Control-Allow-Methods') === 'undefined');
+            assert(typeof res.get('Access-Control-Allow-Headers') === 'undefined');
+            done();
+          });
+      });
+
+      it('should set cors headers if cors route option is true', function (done) {
+        request(sails.server)
+          .get('/cors/true')
+          .expect('Access-Control-Allow-Origin', '*')
+          .expect('Access-Control-Allow-Credentials', 'true')
+          .expect(200, 'OK')
+          .end(function (err, res) {
+            if (err) return done(err);
+            assert(typeof res.get('Access-Control-Allow-Methods') === 'undefined');
+            assert(typeof res.get('Access-Control-Allow-Headers') === 'undefined');
+            done();
+          });
+      });
+
+      it('should unset cors headers if cors route option is false', function (done) {
+        request(sails.server)
+          .get('/cors/false')
+          .expect(200, 'OK')
+          .expect('Access-Control-Allow-Origin', '')
+          .expect('Access-Control-Allow-Credentials', '')
+          .expect('Access-Control-Allow-Methods', '')
+          .expect('Access-Control-Allow-Headers', '')
+          .expect(200, 'OK', done);
+      });
+    });
   });
 });

@@ -13,13 +13,15 @@ module.exports = function (program) {
           appPath: path.resolve(program.app || '.'),
           log: {level: program.verbose ? 'verbose' : undefined}
         }),
-        hooks = sails.hooks,
         prompt = 'sails (' + sails.environment + ')> ',
         repl = opts.coffee ? require('coffee-script/lib/coffee-script/repl') : require('repl');
 
-      repl.start({prompt: prompt}).on('exit', function () {
-        sails.server.close();
-        process.exit();
+      sails.boot(function (err) {
+        if (err) throw err;
+        repl.start({prompt: prompt}).on('exit', function () {
+          sails.server.close();
+          process.exit();
+        });
       });
     });
 };

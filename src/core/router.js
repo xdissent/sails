@@ -1,7 +1,7 @@
 var _ = require('lodash'),
   methods = require('express/node_modules/methods');
 
-module.exports = function (config, http, middleware, watcher, routeCompiler, log) {
+module.exports = function (config, http, middleware, routeCompiler, log) {
 
   log = log.namespace('router');
 
@@ -12,6 +12,13 @@ module.exports = function (config, http, middleware, watcher, routeCompiler, log
     this._routes = [];
     this.middleware = http.router;
     middleware.use(this.middleware);
+    this.reload();
+
+    var self = this;
+    config.watch('routes', function () {
+      log.verbose('Routes config changed');
+      self.reload();
+    });
   }
 
   Router.prototype._defaultFilter = function (routes) {
