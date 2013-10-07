@@ -1,10 +1,8 @@
-var _ = require('lodash'),
-  pluralize = require('pluralize');
+var _ = require('lodash');
 
 module.exports = function (params, models) {
   return {
     routes: function (controller) {
-      var plural = pluralize(controller.identity);
       return {
         'get /:id?': {
           controller: controller.identity,
@@ -16,12 +14,12 @@ module.exports = function (params, models) {
           action: 'create',
           name: controller.identity + '_create'
         },
-        'put /:id': {
+        'put /:id?': {
           controller: controller.identity,
           action: 'update',
           name: controller.identity + '_update'
         },
-        'delete /:id': {
+        'delete /:id?': {
           controller: controller.identity,
           action: 'destroy',
           name: controller.identity + '_destroy'

@@ -11,7 +11,6 @@ module.exports = function (_container, config, moduleLoader, router, log, done) 
   moduleLoader.optional({
     dirname: path.resolve(__dirname, '../hooks'),
     filter: /^([^_].+)\.(js|coffee)$/,
-    depth: 2,
     identity: false
   }, function modulesLoaded (err, modules) {
     if (err) throw err;
@@ -22,7 +21,6 @@ module.exports = function (_container, config, moduleLoader, router, log, done) 
   moduleLoader.optional({
     dirname: config.paths.hooks,
     filter: /^([^_].+)\.(js|coffee)$/,
-    depth: 2,
     identity: false
   }, function modulesLoaded (err, modules) {
     if (err) throw err;

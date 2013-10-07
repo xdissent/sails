@@ -6,7 +6,7 @@ module.exports = function (config, middleware, router, log) {
 
   configureI18n();
   config.watch(['paths', 'i18n'], function () {
-    log('Config changed');
+    log.verbose('Config changed');
     configureI18n();
   });
   middleware.insertBefore(router.middleware, i18n);

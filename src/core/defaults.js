@@ -78,8 +78,8 @@ module.exports = function (appPath) {
     },
 
     blueprints: [
-      // 'actions',
-      // 'shortcuts',
+      'actions',
+      'shortcuts',
       'rest'
     ],
 

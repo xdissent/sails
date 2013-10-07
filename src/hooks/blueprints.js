@@ -44,13 +44,16 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
     var blueprints = {};
     
     moduleLoader.optional({
-      dirname: path.resolve(__dirname, '../blueprints'),
+      dirname: path.resolve(__dirname, 'blueprints'),
       filter: /^(.+)\.(js|coffee)$/
     }, function modulesLoaded (err, modules) {
       if (err) throw err;
       _.each(modules, function (blueprint) {
         blueprints[blueprint.globalId] = blueprint;
       });
+      log.verbose('Loaded core blueprints', _.map(modules, function (bp) {
+        return bp.globalId;
+      }));
     });
 
     moduleLoader.optional({
@@ -61,6 +64,9 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
       _.each(modules, function (blueprint) {
         blueprints[blueprint.globalId] = blueprint;
       });
+      log.verbose('Loaded user blueprints', _.map(modules, function (bp) {
+        return bp.globalId;
+      }));
     });
 
     var names = _.unique(_.flatten(_.map(controllers, blueprintNamesForController)));
@@ -86,6 +92,7 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
       _.each(names, function (name, index) {
         blueprints[name] = args[index];
         blueprints[name].identity = name;
+        log.verbose('Registering blueprint', name);
       });
       return blueprints;
     }

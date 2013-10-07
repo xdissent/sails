@@ -43,8 +43,8 @@ module.exports = function (config, moduleLoader, middleware, router) {
     var controller = controllers[req.target.controller];
     if (!controller) return next();
     var action = controller[req.target.action];
-    if (!action) return next();
     if (_.isArray(action)) return chainControllerActions(action, req, res, next);
+    if (!_.isFunction(action)) return next();
     return action(req, res, next);
   }
 
