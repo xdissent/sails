@@ -1,7 +1,7 @@
 var _ = require('lodash');
 
-module.exports = function (params, models) {
-  var rest = require('./rest')(params, models);
+module.exports = function (params, models, log) {
+  var rest = require('./rest')(params, models, log);
 
   return {
     controller: rest.controller,

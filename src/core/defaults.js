@@ -78,9 +78,9 @@ module.exports = function (appPath) {
     },
 
     blueprints: [
-      'actions',
+      'rest',
       'shortcuts',
-      'rest'
+      'actions'
     ],
 
     // Controller config
