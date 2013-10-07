@@ -70,7 +70,8 @@
     "mocha": "*",
     "request": "*",
     "supertest": "~0.8.0",
-    "tmp": "0.0.21"
+    "tmp": "0.0.21",
+    "sails-memory": "~0.9.1"
   },
   "optionalDependencies": {
     "coffee-script": "1.6.2"
