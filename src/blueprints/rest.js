@@ -1,13 +1,34 @@
-var _ = require('lodash');
+var _ = require('lodash'),
+  pluralize = require('pluralize');
 
-module.exports = function (models) {
+module.exports = function (params, models) {
   return {
-    routes: {
-      'get /:id?': 'find',
-      'post /': 'create',
-      'put /:id?': 'update',
-      'delete /:id?': 'destroy'
+    routes: function (controller) {
+      var plural = pluralize(controller.identity);
+      return {
+        'get /:id?': {
+          controller: controller.identity,
+          action: 'find',
+          name: controller.identity + '_find'
+        },
+        'post /': {
+          controller: controller.identity,
+          action: 'create',
+          name: controller.identity + '_create'
+        },
+        'put /:id': {
+          controller: controller.identity,
+          action: 'update',
+          name: controller.identity + '_update'
+        },
+        'delete /:id': {
+          controller: controller.identity,
+          action: 'destroy',
+          name: controller.identity + '_destroy'
+        }
+      };
     },
+
     controller: {
       find: function find (req, res, next) {
         var Model = models[req.target.controller];
@@ -18,8 +39,8 @@ module.exports = function (models) {
           return Model.findOne(req.param('id')).done(function found (err, model) {
             if (err || !model) return next(err);
 
-            if (req.socket && !Model.silent) Model.subscribe(req.socket, model);
-            res.json(model.toJSON());
+            if (false && req.socket && !Model.silent) Model.subscribe(req.socket, model);
+            res.json(200, model.toJSON());
           });
         }
           
@@ -27,7 +48,7 @@ module.exports = function (models) {
         try { where = JSON.parse(where); } catch (e) {}
         if (!where) {
           var omit = ['limit', 'skip', 'sort', 'callback'];
-          where = _.omit(req.params.all(), function (param, name) {
+          where = _.omit(req.params.all, function (param, name) {
             return _.isUndefined(param) || _.contains(omit, name);
           });
         }
@@ -42,20 +63,78 @@ module.exports = function (models) {
         Model.find(options).done(function found (err, models) {
           if (err || !models) return next(err);
 
-          if (req.socket && !Model.silent) {
+          if (false && req.socket && !Model.silent) {
             Model.subscribe(req.socket);
             Model.subscribe(req.socket, models);
           }
 
-          res.json(_.map(models, function (model) {
+          res.json(200, _.map(models, function (model) {
             return model.toJSON();
           }));
         });
+      },
+
+      create: function (req, res, next) {
+        var Model = models[req.target.controller];
+
+        if (!Model) return next();
+
+        Model.create(req.params.all, function (err, model) {
+          if (err) {
+            if (err.ValidationError) {
+              err.status = 400;
+              err.message = 'Bad Request';
+            }
+            return next(err);
+          }
+
+          if (false && req.socket && !Model.silent) Model.publishCreate(model);
+
+          res.json(201, model.toJSON());
+        });
+      },
+
+      update: function (req, res, next) {
+        var Model = models[req.target.controller];
+
+        if (!Model) return next();
+
+        Model.update(req.params.id, req.params.all, function (err, models) {
+          if (err) {
+            if (err.ValidationError) {
+              err.status = 400;
+              err.message = 'Bad Request';
+            }
+            return next(err);
+          }
+
+          if (!models || models.length === 0) return next();
+
+          var model = models[0];
+
+          if (false && req.socket && !Model.silent) Model.publishCreate(model);
+
+          res.json(200, model.toJSON());
+        });
+      },
+
+      destroy: function (req, res, next) {
+        var Model = models[req.target.controller];
+
+        if (!Model) return next();
+
+        Model.findOne(req.params.id).done(function (err, model) {
+          if (err || !model) return next(err);
+
+          Model.destroy(req.params.id, function (err) {
+            if (err) return next(err);
+
+            if (false && req.socket && !Model.silent) Model.publishDestroy(req.params.id);
+
+            res.json(200, model.toJSON);
+          });
+        });
       }
-      // find: require('../controllers/controller.find.js')(sails),
-      // create: require('../controllers/controller.create.js')(sails),
-      // update: require('../controllers/controller.update.js')(sails),
-      // destroy: require('../controllers/controller.destroy.js')(sails)
     }
   };
 };

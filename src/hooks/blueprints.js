@@ -31,7 +31,8 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
         }
         _.each(routeCompiler.compile(blueprintRoutes, prefix), function (route) {
           routed = true;
-          var target = {controller: controller.identity, action: route.target, blueprint: true};
+          var target = {controller: controller.identity, action: route.target, blueprint: blueprint.identity};
+          if (_.isPlainObject(route.target)) _.extend(target, route.target);
           router.route(route.method, route.route, target, route.name);
         });
       });
@@ -84,6 +85,7 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
       var blueprints = {}, args = _.clone(arguments);
       _.each(names, function (name, index) {
         blueprints[name] = args[index];
+        blueprints[name].identity = name;
       });
       return blueprints;
     }

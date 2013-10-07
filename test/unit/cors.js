@@ -23,7 +23,6 @@ describe('cors', function () {
       hooks: ['cookies', 'session', 'csrf', 'cors'],
       server: {port: 0, host: 'localhost'},
       cors: {allRoutes: false},
-      log: {level: 'verbose'},
       routes: {
         '/cors/none': corsNone,
         '/cors/true': corsTrue,

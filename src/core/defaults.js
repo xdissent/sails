@@ -77,6 +77,12 @@ module.exports = function (appPath) {
       host: 'localhost'
     },
 
+    blueprints: [
+      // 'actions',
+      // 'shortcuts',
+      'rest'
+    ],
+
     // Controller config
     controllers: {
 
