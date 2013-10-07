@@ -37,12 +37,18 @@ module.exports = function (config, middleware, csrf, router, log) {
     if (!enabled) return route;
 
     var newRoute = _.clone(route);
-    newRoute.target = serveCors(options);
+    newRoute.target = serveCorsTarget(options);
+    if (_.isFunction(route.target) && route.target.name && !route.name) {
+      newRoute.name = route.target.name;
+    }
+    if (newRoute.name) {
+      newRoute.name = newRoute.name + (options.clear ? '_clear_cors' : '_set_cors');
+    }
     return [newRoute, route];
   }
 
-  function serveCors (options) {
-    return function (req, res, next) {
+  function serveCorsTarget (options) {
+    return function serveCors (req, res, next) {
       options = _.extend({}, config.cors, options);
       if (options.clear) {
         options = {origin: '', credentials: '', methods: '', headers: '', clear: true};
@@ -63,7 +69,7 @@ module.exports = function (config, middleware, csrf, router, log) {
 
   function cors (req, res, next) {
     if (!config.cors || req.method !== 'OPTIONS') return next();
-    return serveCors()(req, res, function (err) {
+    return serveCorsTarget()(req, res, function (err) {
       if (err) return next(err);
       res.send(200);
     });

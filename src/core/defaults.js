@@ -25,8 +25,8 @@ module.exports = function (appPath) {
       'blueprints',
       'views',
       'policies',
-      // 'notFound',
-      // 'error'
+      'notFound',
+      'error'
     ],
     // hooks: {
     //   request:      require('../hooks/request'),
@@ -41,6 +41,15 @@ module.exports = function (appPath) {
     //   i18n:         require('../hooks/i18n'),
     //   http:         require('../hooks/http')
     // },
+
+    notFound: {
+      message: 'Not Found',
+      handler: undefined
+    },
+
+    error: {
+      handler: undefined
+    },
 
     // // Default 404 (not found) handler
     // 404: function notFound (message, req, res) {

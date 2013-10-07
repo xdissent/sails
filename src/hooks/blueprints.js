@@ -12,9 +12,14 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
   return blueprints;
 
   function loadBlueprintRoutes () {
+    var routed = false;
     log.verbose('Unrouting previous blueprint routes');
     router.unroute(function (route) {
-      return route.target && route.target.blueprint;
+      if (route.target && route.target.blueprint) {
+        routed = true;
+        return true;
+      }
+      return false;
     });
     log.verbose('Routing blueprint routes for all controllers');
     _.each(controllers, function (controller) {
@@ -25,12 +30,13 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
           blueprintRoutes = blueprintRoutes(controller);
         }
         _.each(routeCompiler.compile(blueprintRoutes, prefix), function (route) {
+          routed = true;
           var target = {controller: controller.identity, action: route.target, blueprint: true};
-          router.route(route.method, route.route, target);
+          router.route(route.method, route.route, target, route.name);
         });
       });
     });
-    router.reload();
+    if (routed) router.reload();
   }
 
   function loadBlueprints () {

@@ -10,9 +10,9 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
     defaultFilter.name = 'default';
     this._filters = [defaultFilter];
     this._routes = [];
+    this.routes = [];
     this.middleware = http.router;
     middleware.use(this.middleware);
-    this.reload();
 
     var self = this;
     config.watch('routes', function () {
@@ -26,6 +26,9 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
       if (!_.isFunction(route.target) && !_.isArray(route.target)) {
         route.target = this.setRequestTarget(route.target);
       }
+      if (_.isFunction(route.target) && route.target.name && !route.name) {
+        route.name = route.target.name;
+      }
       return route;
     }, this);
   };
@@ -38,7 +41,7 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
     }
     log.verbose('Using router filter ' + (filter.name || 'anonymous') + ' at index ' + index);
     this._filters.splice(index, 0, filter);
-    return this.reload();
+    return this;
   };
 
   Router.prototype.appendFilter = Router.prototype.use;
@@ -65,6 +68,7 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
     log.verbose('Reloading routes');
     var routes = routeCompiler.compile(config.routes).concat(_.cloneDeep(this._routes));
     this.clear();
+    log.verbose('Compiled routes', routes);
     _.each(this.filter(routes), this._bind, this);
     return this;
   };
@@ -76,6 +80,7 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
   Router.prototype._bind = function (route) {
     log.verbose('Binding route', route);
     http[route.method](route.route, route.target);
+    this.routes.push(route);
     return this;
   };
 
@@ -83,6 +88,7 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
     _.each(methods, function (method) {
       http.routes[method] = [];
     });
+    this.routes = [];
     return this;
   };
 
@@ -90,18 +96,19 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
     return _.remove(this._routes, where, self);
   };
 
-  Router.prototype.route = function (method, route, target) {
-    if (method === 'all') return this.all(route, target);
-    log.verbose('Adding route for', route, 'with target', target);
-    this._routes.push({method: method, route: route, target: target});
+  Router.prototype.route = function (method, route, target, name) {
+    log.verbose('Adding route', name, 'for', route, 'with target', target);
+    this._routes.push({method: method, route: route, target: target, name: name});
     return this;
   };
 
   Router.prototype.setRequestTarget = function(target) {
-    return function serveTarget (req, res, next) {
+    var fn = function serveTarget (req, res, next) {
       req.target = target;
       next();
     };
+    fn.target = target;
+    return fn;
   };
 
   Router.prototype.all = function (route, target) {

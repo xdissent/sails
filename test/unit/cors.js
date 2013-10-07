@@ -1,17 +1,17 @@
 var request = require('supertest'),
   assert = require('assert'),
   Sails = require('../../src'),
-  sails = null,
+  sails = null
 
-  corsNone = function (req, res, next) {
-    res.send(200, 'OK');
-  },
-  corsTrue = function (req, res, next) {
-    res.send(200, 'OK');
-  },
-  corsFalse = function (req, res, next) {
-    res.send(200, 'OK');
-  };
+function corsNone (req, res, next) {
+  res.send(200, 'OK');
+}
+function corsTrue (req, res, next) {
+  res.send(200, 'OK');
+}
+function corsFalse (req, res, next) {
+  res.send(200, 'OK');
+}
 
 corsTrue.cors = true;
 corsFalse.cors = false;
@@ -23,6 +23,7 @@ describe('cors', function () {
       hooks: ['cookies', 'session', 'csrf', 'cors'],
       server: {port: 0, host: 'localhost'},
       cors: {allRoutes: false},
+      log: {level: 'verbose'},
       routes: {
         '/cors/none': corsNone,
         '/cors/true': corsTrue,

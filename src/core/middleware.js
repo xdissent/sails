@@ -1,11 +1,14 @@
 var _ = require('lodash');
 
-module.exports = function (http) {
+module.exports = function (http, log) {
+
+  log = log.namespace('middleware');
 
   function Middleware () {
   }
 
   Middleware.prototype.use = function(route, fn, index) {
+    log.verbose('Using middleware', fn, 'for route', route, 'at index', index);
     if (_.isFunction(route)) {
       index = fn;
       fn = route;

@@ -1,5 +1,4 @@
 var request = require('supertest'),
-  assert = require('assert'),
   Sails = require('../../src'),
   sails = null;
 

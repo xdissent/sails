@@ -6,6 +6,8 @@ var _ = require('lodash'),
     'new',
     'lift',
     'console',
+    'routes',
+    'middleware',
     'generate'
   ];
 

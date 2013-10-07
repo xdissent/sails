@@ -100,7 +100,7 @@ module.exports = (grunt) ->
   )
   
   # Get path to core grunt dependencies from Sails
-  depsPath = if grunt.file.exists('node_modules/sails') then 'node_modules/sails/' else '';
+  depsPath = if grunt.file.exists('node_modules/sails') then 'sails/node_modules/' else '';
   grunt.loadNpmTasks "#{depsPath}grunt-contrib-clean"
   grunt.loadNpmTasks "#{depsPath}grunt-contrib-copy"
   grunt.loadNpmTasks "#{depsPath}grunt-contrib-concat"

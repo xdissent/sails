@@ -42,13 +42,14 @@ module.exports = function () {
 
       if (_.isPlainObject(target)) {
         parsed.target = _.omit(target, function (target, route) {
-          return self.isRoute(route) || route === 'method';
+          return self.isRoute(route) || route === 'method' || route === 'name';
         });
         var routes = _.omit(target, function (target, route) {
           return !self.isRoute(route);
         });
         var orig = _.clone(parsed);
         parsed.method = target.method || parsed.method;
+        if (target.name) parsed.name = target.name;
         if (_.isEmpty(parsed.target)) parsed = null;
         return [parsed].concat(self.compile(routes, orig.route, orig.method));
       }

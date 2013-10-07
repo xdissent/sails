@@ -122,7 +122,7 @@ module.exports = function (grunt) {
 
 
   // Get path to core grunt dependencies from Sails
-  var depsPath = grunt.file.exists('node_modules/sails') ? 'node_modules/sails/' : '';
+  var depsPath = grunt.file.exists('node_modules/sails') ? 'sails/node_modules/' : '';
   grunt.loadNpmTasks(depsPath + 'grunt-contrib-clean');
   grunt.loadNpmTasks(depsPath + 'grunt-contrib-copy');
   grunt.loadNpmTasks(depsPath + 'grunt-contrib-concat');

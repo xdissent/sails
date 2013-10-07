@@ -1,7 +1,7 @@
 var connectFlash = require('connect-flash');
 
 module.exports = function (config, middleware, session) {
-  middleware.insertAfter(session, flash);
+  middleware.insertAfter(session.middleware, flash);
   return flash;
 
   function flash (req, res, next) {

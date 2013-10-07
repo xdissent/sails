@@ -2,7 +2,7 @@ var _ = require('lodash'),
   path = require('path'),
   async = require('async');
 
-module.exports = function (_container, config, moduleLoader, log, done) {
+module.exports = function (_container, config, moduleLoader, router, log, done) {
   
   log = log.namespace('hooks');
 
