@@ -43,7 +43,7 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
 
     merge(config, overrides);
     merge(target, config);
-  }
+  };
 
   Config.prototype.reload = function () {
     var config = {},

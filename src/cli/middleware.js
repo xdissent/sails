@@ -1,6 +1,7 @@
 var Sails = require('../'),
   path = require('path'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  util = require('./util');
 
 module.exports = function (program) {
   program
@@ -17,35 +18,15 @@ module.exports = function (program) {
       sails.boot(function (err) {
         if (err) throw err;
 
-        var middlewares = _.map(sails.http.stack, function (middleware) {
+        var middlewares = _.map(sails.http.stack, function (middleware, index) {
           return [
-            middleware.route,
+            index,
             (middleware.handle.name || 'anonymous'),
-            (middleware.handle.length && middleware.handle.length > 3 && '(error)' || '')
+            middleware.route,
+            (middleware.handle.length && middleware.handle.length > 3 && '*' || '')
           ];
         });
-
-        var pads = longest(middlewares);
-
-        console.log(_.map(middlewares, function (middleware) {
-          return _.map(middleware, function (col, num) {
-            return pad(col, pads[num]);
-          }).join('\t');
-        }).join('\n'));
+        console.log(util.columnize(['#', 'NAME', 'ROUTE', 'ERR'], middlewares));
       });
     });
 };
-
-function longest (rows) {
-  return _.reduce(rows, function (lengths, row) {
-    _.each(row, function (col, num) {
-      lengths[num] = Math.max(col.length, lengths[num] || 0);
-    });
-    return lengths;
-  }, Array(rows.length));
-}
-
-function pad (str, width) {
-  var len = Math.max(0, width - str.length);
-  return str + Array(len + 1).join(' ');
-}

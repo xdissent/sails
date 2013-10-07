@@ -32,7 +32,9 @@ Sails.prototype.boot = function (cb) {
   var sails = this, start = new Date();
   sails.log.verbose('Booting sails');
   sails.container.get('hooks', function (err, hooks) {
+    if (err) return cb(err);
     sails.router.reload();
+    sails.log.verbose('Sails booted in', (new Date() - start) / 1000, 'seconds');
     cb(err, sails);
   });
 };

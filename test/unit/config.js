@@ -24,14 +24,14 @@ describe('config', function () {
 
   it('should merge in new defaults on reload', function () {
     overrides.test = undefined;
-    defaults.test = 3
+    defaults.test = 3;
     config.reload();
     assert.equal(config.test, 3);
   });
 
   it('should remove undefined keys on reload', function () {
     assert.equal(config.test, 1);
-    delete overrides.test
+    delete overrides.test;
     config.reload();
     assert.equal(config.test, undefined);
   });

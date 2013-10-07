@@ -48,7 +48,7 @@ describe('views', function() {
         '/view/helper/callback': function (req, res, next) {
           res.view('home/index', function (err, rendered) {
             if (!err) return res.send(200, 'OK');
-            next(err)
+            next(err);
           });
         },
         '/view/helper/callback/rendered': function (req, res, next) {

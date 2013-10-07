@@ -24,7 +24,7 @@ describe('policies', function () {
     lift({}, function () {
       sails.lower(done);
     });
-  })
+  });
 
   afterEach(function (done) {
     sails.lower(done);

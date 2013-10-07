@@ -60,7 +60,7 @@ describe('i18n', function() {
         request(sails.server)
           .get('/res')
           .set('Cookie', res.headers['set-cookie'])
-          .expect(200, 'Hola', done)
+          .expect(200, 'Hola', done);
       });
   });
 

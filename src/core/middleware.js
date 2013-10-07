@@ -8,7 +8,6 @@ module.exports = function (http, log) {
   }
 
   Middleware.prototype.use = function(route, fn, index) {
-    log.verbose('Using middleware', fn, 'for route', route, 'at index', index);
     if (_.isFunction(route)) {
       index = fn;
       fn = route;
@@ -34,6 +33,8 @@ module.exports = function (http, log) {
 
     // Add the middleware back to the stack.
     http.stack.splice(index, 0, mw);
+
+    log.verbose('Using middleware', name, 'for route', route, 'at index', index);
   };
 
   Middleware.prototype.append = function (route, fn) {

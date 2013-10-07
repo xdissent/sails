@@ -11,7 +11,7 @@ module.exports = function (config, middleware, session, log) {
     if (!config.csrf) return next();
 
     res.locals.csrfToken = function csrfToken () {
-      return res.locals._csrf || res.locals._csrf = req.csrfToken();
+      return res.locals._csrf || (res.locals._csrf = req.csrfToken());
     };
 
     return express.csrf()(req, res, next);

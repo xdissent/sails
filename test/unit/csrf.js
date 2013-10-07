@@ -32,7 +32,7 @@ describe('csrf', function () {
           .post('/')
           .set('Cookie', res.headers['set-cookie'])
           .set('X-CSRF-Token', res.text)
-          .expect(200, done)
+          .expect(200, done);
       });
   });
 
@@ -46,7 +46,7 @@ describe('csrf', function () {
           .post('/')
           .set('Cookie', res.headers['set-cookie'])
           .set('X-CSRF-Token', '123')
-          .expect(403, done)
+          .expect(403, done);
       });
   });
 
@@ -59,7 +59,7 @@ describe('csrf', function () {
         request(sails.server)
           .post('/')
           .set('Cookie', res.headers['set-cookie'])
-          .expect(403, done)
+          .expect(403, done);
       });
   });
 
@@ -72,7 +72,7 @@ describe('csrf', function () {
         request(sails.server)
           .post('/')
           .set('X-CSRF-Token', res.text)
-          .expect(403, done)
+          .expect(403, done);
       });
   });
 });

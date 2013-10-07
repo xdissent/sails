@@ -30,12 +30,13 @@ module.exports = function (program) {
 
       if (!name) throw new Error('Name is required');
 
-      var ext = opts.coffee ? 'coffee' : 'js';
+      var ext = opts.coffee ? 'coffee' : 'js',
+        options;
 
       switch (type) {
 
         case 'view':
-          var options = {actions: attributes, ext: ext};
+          options = {actions: attributes, ext: ext};
           generator.generateView(name, options);
           sails.log.info('Generated view for ' + name);
           break;
@@ -47,7 +48,7 @@ module.exports = function (program) {
 
         default:
           if (!type || type === 'model') {
-            var options = {
+            options = {
               ext: ext,
               attributes: _.compact(_.map(attributes, function (attr) {
                 if (!_.isString(attr)) return null;
@@ -60,7 +61,7 @@ module.exports = function (program) {
           }
 
           if (!type || type === 'controller') {
-            var options = {
+            options = {
               ext: ext,
               federated: opts.federated,
               actions: !type ? [] : attributes

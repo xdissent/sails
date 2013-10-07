@@ -20,7 +20,7 @@ module.exports = function (config, middleware, router, log) {
 
       var args = _.map(arguments),
         err = _.find(args, function (arg) {
-          return arg instanceof Error
+          return arg instanceof Error;
         });
 
       err = err || new Error();

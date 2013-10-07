@@ -1,7 +1,7 @@
 var request = require('supertest'),
   assert = require('assert'),
   Sails = require('../../src'),
-  sails = null
+  sails = null;
 
 function corsNone (req, res, next) {
   res.send(200, 'OK');

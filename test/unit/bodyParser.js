@@ -10,7 +10,7 @@ describe('bodyParser', function() {
       server: {port: 0, host: 'localhost'},
       routes: {
         '/': function (req, res, next) {
-          if (typeof req.body === 'object' && parseInt(req.body.test) === 123) {
+          if (typeof req.body === 'object' && parseInt(req.body.test, 10) === 123) {
             return res.send(200, 'OK');
           }
           next(new Error('FAIL'));
