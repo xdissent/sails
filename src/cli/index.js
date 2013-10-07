@@ -33,6 +33,14 @@ function validateEnvFlag (env) {
   };
 }
 
+program.Command.prototype._commandHelp = program.Command.prototype.commandHelp;
+program.Command.prototype.commandHelp = function () {
+  _.each(this.commands, function (command) {
+    command._name = command._name[0] + '[' + command._name.slice(1) + ']';
+  });
+  return program.Command.prototype._commandHelp.apply(this, arguments);
+};
+
 program
   .version(pkg.version)
   .option('-a, --app <path>', 'Path to Sails app [cwd]', process.cwd())
@@ -45,11 +53,16 @@ program
   .on('environment', validateEnv)
   .on('*', function (args) {
     // Generate shortcuts
-    var cmd = args[0];
-    if (cmd && cmd.length > 0 && 'generate'.slice(0, cmd.length) === cmd) {
-      return program.parse(_.map(program.rawArgs, function (arg) {
-        return arg === cmd ? 'generate' : arg;
-      }));
+    var command = args[0];
+    if (!_.isEmpty(command)) {
+      var subcommand = _.find(subcommands, function (subcommand) {
+        return subcommand.slice(0, command.length) === command;
+      });
+      if (subcommand) {
+        return program.parse(_.map(program.rawArgs, function (arg) {
+          return arg === command ? subcommand : arg;
+        }));
+      }
     }
     program.help();
   });
