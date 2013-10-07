@@ -1,23 +1,56 @@
 var _ = require('lodash');
 
-module.exports = function (config, moduleLoader, middleware, router) {
+module.exports = function (config, moduleLoader, middleware, router, log, watcher) {
 
-  var controllers = loadControllers();
+  log = log.namespace('controllers');
+
+  var _watcher = null,
+    controllers = {};
+
+  loadControllers();
+  watch();
+
+  config.watch('paths', function (key, previous, current) {
+    if ((previous && previous.controllers) !== (current && current.controllers)) {
+      log.verbose('Controller paths changed');
+      loadControllers();
+      watch();
+    }
+  });
+
   router.insertFilterBefore('default', controllerRoutesFilter);
   middleware.insertAfter(router.middleware, serveControllerAction);
   return controllers;
 
+  function watch() {
+    if (_watcher) _watcher.close();
+    _watcher = watcher(config.paths.controllers, function () {
+      log.verbose('Controller files changed');
+      loadControllers();
+    });
+  }
+
   function loadControllers () {
-    var controllers = {};
+    log.verbose('Loading controllers from', config.paths.controllers);
+
     moduleLoader.optional({
       dirname: config.paths.controllers,
       filter: /(.+)Controller\.(js|coffee)$/,
-      replaceExpr: /Controller/
+      replaceExpr: /Controller/,
+      force: true
     }, function modulesLoaded (err, modules) {
       if (err) throw err;
-      controllers = modules;
+
+      var current = _.keys(modules),
+        previous = _.keys(controllers),
+        removed = _.difference(previous, current);
+
+      _.extend(controllers, modules);
+      _.each(removed, function (key) {
+        delete controllers[key];
+      });
     });
-    return controllers;
+    log.verbose('Loaded controllers', controllers);
   }
 
   function controllerRoutesFilter (routes) {

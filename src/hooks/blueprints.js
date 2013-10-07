@@ -2,14 +2,34 @@ var _ = require('lodash'),
   path = require('path'),
   pluralize = require('pluralize');
 
-module.exports = function (_container, config, middleware, controllers, moduleLoader, router, routeCompiler, log) {
+module.exports = function (_container, config, middleware, controllers, moduleLoader, router, routeCompiler, log, watcher) {
 
   log = log.namespace('blueprints');
 
-  var blueprints = loadBlueprints();
+  var _watcher = null,
+    blueprints = loadBlueprints();
+
+  watch();
+
+  config.watch('paths', function (key, previous, current) {
+    if ((previous && previous.controllers) !== (current && current.controllers)) {
+      log.verbose('Controller paths changed');
+      loadBlueprintRoutes();
+      watch();
+    }
+  });
+
   middleware.insertAfter(router.middleware, serveBlueprint);
   loadBlueprintRoutes();
   return blueprints;
+  
+  function watch() {
+    if (_watcher) _watcher.close();
+    _watcher = watcher(config.paths.controllers, function () {
+      log.verbose('Controller files changed');
+      loadBlueprintRoutes();
+    });
+  }
 
   function loadBlueprintRoutes () {
     var routed = false;

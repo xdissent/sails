@@ -10,7 +10,8 @@ module.exports = function (config, moduleLoader, adapters, globals) {
     var models = {};
     moduleLoader.optional({
       dirname: config.paths.models,
-      filter: /(.+)\.(js|coffee)$/
+      filter: /(.+)\.(js|coffee)$/,
+      force: true
     }, function modulesLoaded (err, modules) {
       if (err) throw err;
       models = modules;
