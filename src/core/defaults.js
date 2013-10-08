@@ -77,11 +77,15 @@ module.exports = function (appPath) {
       host: 'localhost'
     },
 
-    blueprints: [
-      'rest',
-      'shortcuts',
-      'actions'
-    ],
+    blueprints: {
+      enabled: [
+        'rest',
+        'shortcuts',
+        'actions'
+      ],
+      prefix: '',
+      pluralize: false
+    },
 
     // Controller config
     controllers: {

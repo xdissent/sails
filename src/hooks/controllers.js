@@ -51,7 +51,7 @@ module.exports = function (config, moduleLoader, middleware, router, log, watche
 
     target.action = target.action || 'index';
 
-    if (!this._exists(target.controller, target.action)) {
+    if (!this._actionExists(target.controller, target.action)) {
       return target;
     }
 
@@ -66,6 +66,8 @@ module.exports = function (config, moduleLoader, middleware, router, log, watche
       if (!_.isArray(action)) return action(req, res, next);
       chainControllerActions(action, req, res, next);      
     };
+    fn.controller = controllerId;
+    fn.action = actionId;
     fn.toString = function () {
       return '[Controller: ' + controllerId + ', Action: ' + actionId + ']';
     };
@@ -110,9 +112,13 @@ module.exports = function (config, moduleLoader, middleware, router, log, watche
     });
   };
 
-  Controllers.prototype._exists = function (controllerId, actionId) {
+  Controllers.prototype._controllerExists = function (controllerId) {
+    return controllerId && this._controllers[controllerId];
+  };
+
+  Controllers.prototype._actionExists = function (controllerId, actionId) {
+    if (!this._controllerExists(controllerId) || !actionId) return false;
     var controller = this._controllers[controllerId];
-    if (!controller) return false;
     var action = controller[actionId];
     return (_.isArray(action) || _.isFunction(action));
   };

@@ -42,13 +42,13 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
 
   Router.prototype.insertFilterBefore = function (before, filter) {
     var index = this.indexOfFilter(before);
-    if (index < 1) throw new Error('Could not find before filter');
+    if (index < 0) throw new Error('Could not find before filter');
     return this.use(filter, index);
   };
 
   Router.prototype.insertFilterAfter = function (after, filter) {
     var index = this.indexOfFilter(after);
-    if (index < 1) throw new Error('Could not find after filter');
+    if (index < 0) throw new Error('Could not find after filter');
     return this.use(filter, index + 1);
   };
 

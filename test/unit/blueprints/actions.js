@@ -9,7 +9,9 @@ describe('actions', function () {
   before(function (done) {
     sails = new Sails({
       appPath: path.resolve(__dirname, '../../fixtures/blueprints/rest'),
-      blueprints: ['actions'],
+      blueprints: {
+        enabled: ['actions']
+      },
       hooks: ['controllers', 'blueprints'],
       server: {port: 0, host: 'localhost'}
     });

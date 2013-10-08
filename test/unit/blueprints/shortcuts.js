@@ -9,7 +9,9 @@ describe('shortcuts', function () {
   before(function (done) {
     sails = new Sails({
       appPath: path.resolve(__dirname, '../../fixtures/blueprints/rest'),
-      blueprints: ['shortcuts'],
+      blueprints: {
+        enabled: ['shortcuts']
+      },
       hooks: ['bodyParser', 'adapters', 'models', 'params', 'controllers', 'blueprints'],
       server: {port: 0, host: 'localhost'},
       routes: {},

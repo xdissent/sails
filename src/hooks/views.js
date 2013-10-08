@@ -81,20 +81,6 @@ module.exports = function (http, config, moduleLoader, router, middleware, watch
       return _.map(target, this._targetFilter, this);
     }
 
-    // if (!route || !route.target) return route;
-    // var parsed, subview;
-    // if (_.isString(route.target)) {
-    //   parsed = route.target.match(/^([^\/]+)\/?([^\/]*)?$/);
-    //   if (!parsed) return route;
-    //   subview = _.isEmpty(parsed[2]) ? 'index' : parsed[2];
-    //   route.target = {view: path.join(parsed[1], subview)};
-    // } else if (route.target.view) {
-    //   parsed = route.target.view.split('/');
-    //   subview = _.isEmpty(parsed[1]) ? 'index' : parsed[1];
-    //   route.target.view = path.join(parsed[0], subview);
-    // }
-    // return route;
-
     if (_.isString(target)) {
       var parsed = target.match(/^([^\/]+)\/?([^\/]*)?$/);
       if (!parsed) return target;
@@ -170,13 +156,14 @@ module.exports = function (http, config, moduleLoader, router, middleware, watch
 
   Views.prototype._serve = function (name) {
     var self = this;
-    var fn = function controller (req, res, next) {
+    var fn = function view (req, res, next) {
       req.target = {view: name};
       res.view();
     };
     fn.toString = function () {
       return '[View: ' + name + ']';
     };
+    fn.view = name;
     return fn;
   };
 

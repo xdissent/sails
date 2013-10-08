@@ -9,11 +9,12 @@ describe('rest', function () {
   before(function (done) {
     sails = new Sails({
       appPath: path.resolve(__dirname, '../../fixtures/blueprints/rest'),
-      blueprints: ['rest'],
+      blueprints: {
+        enabled: ['rest']
+      },
       hooks: ['bodyParser', 'adapters', 'models', 'params', 'controllers', 'blueprints'],
       server: {port: 0, host: 'localhost'},
       routes: {},
-      // log: {level: 'verbose'},
       adapters: {'default': 'memory'}
     });
     sails.lift(function (err) {

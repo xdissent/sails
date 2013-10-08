@@ -2,66 +2,157 @@ var _ = require('lodash'),
   path = require('path'),
   pluralize = require('pluralize');
 
-module.exports = function (_container, config, middleware, controllers, moduleLoader, router, routeCompiler, log, watcher) {
+module.exports = function (_container, config, controllers, moduleLoader, router, routeCompiler, log, watcher) {
 
   log = log.namespace('blueprints');
 
-  var _watcher = null,
-    blueprints = loadBlueprints();
+  function Blueprints () {
+    this._watcher = null;
+    this._blueprints = {};
 
-  watch();
+    router.insertFilterBefore('controllers', this._filter());
 
-  config.watch('paths', function (key, previous, current) {
-    if ((previous && previous.controllers) !== (current && current.controllers)) {
-      log.verbose('Controller paths changed');
-      loadBlueprintRoutes();
-      watch();
-    }
-  });
-
-  middleware.insertAfter(router.middleware, serveBlueprint);
-  loadBlueprintRoutes();
-  return blueprints;
-  
-  function watch() {
-    if (_watcher) _watcher.close();
-    _watcher = watcher(config.paths.controllers, function () {
-      log.verbose('Controller files changed');
-      loadBlueprintRoutes();
+    var self = this;
+    config.watch('paths', function (key, previous, current) {
+      if ((previous && previous.blueprints) !== (current && current.blueprints)) {
+        log.verbose('Blueprints paths changed');
+        self.reload();
+      }
     });
+
+    this.reload();
   }
 
-  function loadBlueprintRoutes () {
+  Blueprints.prototype._filter = function() {
+    var self = this;
+    return function blueprints (routes) {
+      return _(routes).map(self._routeFilter, self).flatten().compact().value();
+    };
+  };
+
+  Blueprints.prototype._routeFilter = function(route) {
+    if (!route || !route.target) return route;
+    route.target = this._targetFilter(route.target, route);
+    return route;
+  };
+
+  Blueprints.prototype._targetFilter = function(target, route) {
+
+    var actionWasMissing = false;
+    if (_.isString(target)) {
+      var parsed = target.match(/^([A-z]+)$/);
+      actionWasMissing = parsed && !parsed[1];
+    }
+
+    target = controllers._targetFilter(target);
+
+    if (!target || !target.controller || !target.action) return target;
+    if (_.isArray(target)) return _.map(target, this._targetFilter, this);
+    if (!_.isPlainObject(target)) return target;
+
+    // if (actionWasMissing && route.method === 'all' && target.action === 'index') {
+    //   return this._blueprintRoutes(target.controller, route.path);
+    // }
+
+    var blueprintId = target.blueprint;
+    if (!blueprintId) {
+      blueprintId = this._blueprint(target.controller, target.action);
+    }
+    if (!blueprintId) return target;
+
+    target.blueprint = blueprintId;
+
+    return this._serve(target.controller, target.action, blueprintId);
+  };
+
+  Blueprints.prototype._blueprint = function (controllerId, actionId) {
+    if (!actionId || controllers._actionExists(controllerId, actionId)) return;
+    return _.findLast(this._config(controllerId).enabled, function (name) {
+      var blueprint = this._blueprints[name];
+      if (!this._blueprints[name]) return false;
+      var controller = this._blueprints[name].controller;
+      return controller && (_.isFunction(controller[actionId]) || _.isArray(controller[actionId]));
+    }, this);
+  };
+
+  Blueprints.prototype._config = function (controllerId) {
+    if (!controllerId || !controllers[controllerId]) return {};
+    var controller = controllers[controllerId];
+    if (controller.blueprint === false) return {};
+    if (controller.blueprint && controller.blueprint !== true) {
+      return this._legacyConfig(controller);
+    }
+    if (!controller.blueprints) return config.blueprints;
+    var defaults = controller.blueprints;
+    if (_.isArray(defaults)) {
+      defaults = {enabled: controller.blueprints};
+    }
+    return _.extend({}, config.blueprints, defaults);
+  };
+
+  Blueprints.prototype._legacyConfig = function (controller) {
+    var legacy = _.extend({}, config.controllers.blueprints, controller.blueprint);
+    legacy.enabled = _.compact(_.filter(config.blueprints, function (blueprint) {
+      return legacy[blueprint] !== false;
+    }));
+    return legacy;
+  };
+
+  Blueprints.prototype._serve = function (controllerId, actionId, blueprintId) {
+    var self = this;
+    var fn = function blueprint (req, res, next) {
+      req.target = {
+        controller: controllerId,
+        action: actionId,
+        blueprint: blueprintId
+      };
+      var action = self._blueprints[blueprintId].controller[actionId];
+      if (!_.isArray(action)) return action(req, res, next);
+      chainBlueprintActions(action, req, res, next);
+    };
+    fn.toString = function () {
+      return '[Controller: ' + controllerId + ', Action: ' + actionId + ', Blueprint: ' + blueprintId + ']';
+    };
+    fn.controller = controllerId;
+    fn.action = actionId;
+    fn.blueprint = blueprintId;
+    return fn;
+  };
+
+  Blueprints.prototype._prefix = function(controllerId) {
+    var cfg = this._config(controllerId);
+    return cfg.prefix + '/' + (cfg.pluralize ? pluralize(controllerId) : controllerId);
+  };
+
+  Blueprints.prototype._route = function() {
     var routed = false;
     log.verbose('Unrouting previous blueprint routes');
     router.unroute(function (route) {
-      if (route.target && route.target.blueprint) {
-        routed = true;
-        return true;
-      }
-      return false;
+      if (!route.target || !route.target.blueprint) return false;
+      return routed = true;
     });
     log.verbose('Routing blueprint routes for all controllers');
-    _.each(controllers, function (controller) {
-      var prefix = controllerPrefix(controller);
-      _.each(blueprintsForController(controller), function (blueprint) {
-        var blueprintRoutes = blueprint.routes;
-        if (_.isFunction(blueprintRoutes)) {
-          blueprintRoutes = blueprintRoutes(controller);
-        }
-        _.each(routeCompiler.compile(blueprintRoutes, prefix), function (route) {
+    _.each(controllers._controllers, function (controller, controllerId) {
+      var prefix = this._prefix(controllerId);
+      _.each(this._config(controllerId).enabled, function (name) {
+        var blueprint = this._blueprints[name],
+          routes = blueprint.routes;
+        if (_.isFunction(routes)) routes = routes(controller);
+        _.each(routeCompiler.compile(routes, prefix), function (route) {
           routed = true;
-          var target = {controller: controller.identity, action: route.target, blueprint: blueprint.identity};
+          var target = {controller: controllerId, action: route.target, blueprint: name};
           if (_.isPlainObject(route.target)) _.extend(target, route.target);
-          router.route(route.method, route.route, target, route.name);
+          router.route(route.method, route.path, target, route.name);
         });
-      });
-    });
+      }, this);
+    }, this);
     if (routed) router.reload();
   }
 
-  function loadBlueprints () {
+  Blueprints.prototype.reload = function() {
     var blueprints = {};
+
+    log.verbose('Loading core blueprints');
     
     moduleLoader.optional({
       dirname: path.resolve(__dirname, 'blueprints'),
@@ -71,25 +162,26 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
       _.each(modules, function (blueprint) {
         blueprints[blueprint.globalId] = blueprint;
       });
-      log.verbose('Loaded core blueprints', _.map(modules, function (bp) {
-        return bp.globalId;
-      }));
+      log.verbose('Loaded core blueprints', _.map(modules, 'globalId'));
     });
+
+    log.verbose('Loading user blueprints from', config.paths.controllers);
 
     moduleLoader.optional({
       dirname: config.paths.blueprints,
-      filter: /^(.+)\.(js|coffee)$/
+      filter: /^(.+)\.(js|coffee)$/,
+      force: true
     }, function modulesLoaded (err, modules) {
       if (err) throw err;
       _.each(modules, function (blueprint) {
         blueprints[blueprint.globalId] = blueprint;
       });
-      log.verbose('Loaded user blueprints', _.map(modules, function (bp) {
-        return bp.globalId;
-      }));
+      log.verbose('Loaded user blueprints', _.map(modules, 'globalId'));
     });
 
-    var names = _.unique(_.flatten(_.map(controllers, blueprintNamesForController)));
+    var names = _(controllers._controllers).keys().map(function (controllerId) {
+      return this._config(controllerId).enabled;
+    }, this).flatten().compact().unique().value();
 
     _.each(names, function (name) {
       if (!blueprints[name]) {
@@ -105,7 +197,9 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
     blueprintLoader.toString = blueprintLoaderToString;
 
     _container.register('__blueprints', blueprintLoader);
-    return _container.get('__blueprints');
+    this._blueprints = _container.get('__blueprints');
+
+    this._route();
 
     function blueprintLoader () {
       var blueprints = {}, args = _.clone(arguments);
@@ -122,41 +216,18 @@ module.exports = function (_container, config, middleware, controllers, moduleLo
     }
   }
 
-  function blueprintNamesForController (controller) {
-    if (!controller) return [];
-    if (controller.blueprint) {
-      var blueprintConfig = blueprintConfigForController(controller);
-      return _.compact(_.filter(config.blueprints, function (blueprint) {
-        return blueprintConfig[blueprint] !== false;
-      }));
+  return new Blueprints();
+
+  function chainBlueprintActions (actions, req, res, next) {
+    if (!_.isArray(actions)) {
+      return actions(req, res, next);
     }
-    return _.compact(controller.blueprints || config.blueprints);
-  }
-
-  function blueprintsForController (controller) {
-    return _.compact(_.map(blueprintNamesForController(controller), function (blueprint) {
-      return blueprints[blueprint];
-    }));
-  }
-
-  function serveBlueprint (req, res, next) {
-    if (!req.target || !req.target.controller || !req.target.action) return next();
-    var controller = controllers[req.target.controller];
-    if (!controller || controller[req.target.action]) return next();
-    var blueprint = _.findLast(blueprintsForController(controller), function (blueprint) {
-      return _.isFunction(blueprint.controller && blueprint.controller[req.target.action]);
+    if (_.isEmpty(actions)) return next();
+    var action = actions[0];
+    actions = actions.slice(1);
+    return action(req, res, function (err) {
+      if (err) return next(err);
+      chainBlueprintActions(actions, req, res, next);
     });
-    if (!blueprint) return next();
-    blueprint.controller[req.target.action](req, res, next);
-  }
-
-  function blueprintConfigForController (controller) {
-    return _.extend({}, config.controllers.blueprints, controller.blueprint);
-  }
-
-  function controllerPrefix (controller) {
-    // Merging controller blueprint config with app-level blueprint config
-    var blueprintConfig = blueprintConfigForController(controller);
-    return blueprintConfig.prefix + '/' + (blueprintConfig.pluralize ? pluralize(controller.identity) : controller.identity);
   }
 };
