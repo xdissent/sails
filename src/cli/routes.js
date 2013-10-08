@@ -18,21 +18,30 @@ module.exports = function (program) {
       sails.boot(function (err) {
         if (err) throw err;
         var routes = _.map(sails.router.routes, function (route) {
-          return [
-            (route.name || ''),
-            route.method,
-            route.route,
-            targetName(route.target)
-          ];
-        });
-        console.log(util.columnize(['NAME', 'METHOD', 'ROUTE', 'TARGET'], routes));
+            return [
+              (route.name || ''),
+              route.method,
+              route.path,
+              targetName(route.target)
+            ];
+          }),
+          filters = _.map(sails.router.filters, function (filter) {
+            return filter.name || 'anonymous';
+          });
+
+        console.log(util.columnize(['NAME', 'METHOD', 'ROUTE', 'TARGET'], routes), '\n');
+        console.log('FILTERS:', filters, '\n');
       });
     });
 };
 
 function targetName (target) {
   if (target && target.target) return JSON.stringify(target.target);
-  if (_.isFunction(target)) return target.name || 'anonymous';
+  if (_.isFunction(target)) {
+    if (target.toString().slice(0, 8) !== 'function') return target.toString();
+    if (target.name) return '[Function: ' + target.name + ']';
+    return '[Function]';
+  }
   if (_.isArray(target)) return '[' + _.map(target, targetName).join(', ') + ']';
-  return 'anonymous';
+  return 'INVALID';
 }

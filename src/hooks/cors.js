@@ -36,19 +36,16 @@ module.exports = function (config, middleware, csrf, router, log) {
 
     if (!enabled) return route;
 
-    var newRoute = _.clone(route);
-    newRoute.target = serveCorsTarget(options);
-    if (_.isFunction(route.target) && route.target.name && !route.name) {
-      newRoute.name = route.target.name;
+    if (_.isArray(route.target)) {
+      route.target.unshift(serveCorsTarget(options));
+    } else {
+      route.target = [serveCorsTarget(options), route.target];
     }
-    if (newRoute.name) {
-      newRoute.name = newRoute.name + (options.clear ? '_clear_cors' : '_set_cors');
-    }
-    return [newRoute, route];
+    return route;
   }
 
   function serveCorsTarget (options) {
-    return function serveCors (req, res, next) {
+    var fn = function serveCors (req, res, next) {
       options = _.extend({}, config.cors, options);
       if (options.clear) {
         options = {origin: '', credentials: '', methods: '', headers: '', clear: true};
@@ -65,6 +62,11 @@ module.exports = function (config, middleware, csrf, router, log) {
       }
       next();
     };
+    fn.toString = function () {
+      if (options.clear) return '[CORS: disable]';
+      return '[CORS: enable]';
+    };
+    return fn;
   }
 
   function cors (req, res, next) {

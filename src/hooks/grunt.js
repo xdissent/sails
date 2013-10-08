@@ -12,7 +12,9 @@ module.exports = function (config, log, watcher, done) {
 
   function Grunt () {
     var self = this;
-    process.on('exit', this.unload.bind(this));
+    process.on('exit', function () {
+      self.unload(function () {});
+    });
     config.watch('grunt', function () {
       log.verbose('Config changed');
       self.reload(function () {});

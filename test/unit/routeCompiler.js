@@ -27,9 +27,9 @@ describe('route compiler', function () {
         }
       },
 
-      'controller': 'object',
-      'action': 'index',
-      'method': 'get'
+      controller: 'object',
+      action: 'index',
+      method: 'get'
     },
 
     '/array': [
@@ -45,7 +45,12 @@ describe('route compiler', function () {
           controller: 'array',
           action: 'subItem1'
         },
-        fn
+        fn,
+        {
+          controller: 'array',
+          action: 'getAction',
+          method: 'get'
+        }
       ],
       {
         '/subArray': 'subArray'
@@ -56,24 +61,26 @@ describe('route compiler', function () {
   };
 
   var expected = [
-    {route: '/string', method: 'all', target: 'string'},
-    {route: '/object', method: 'get', target: {controller: 'object', action: 'index'}},
-    {route: '/object/string', method: 'all', target: 'string'},
-    {route: '/object/object', method: 'all', target: {controller: 'subObject', action: 'subAction'}},
-    {route: '/object/method', method: 'post', target: 'postAction'},
-    {route: '/object/deep/deeper/deepest', method: 'all', target: 'deepest'},
-    {route: '/array', method: 'all', target: 'item0'},
-    {route: '/array', method: 'all', target: {controller: 'array', action: 'item1'}},
-    {route: '/array', method: 'all', target: fn},
-    {route: '/array', method: 'all', target: 'subItem0'},
-    {route: '/array', method: 'all', target: {controller: 'array', action: 'subItem1'}},
-    {route: '/array', method: 'all', target: fn},
-    {route: '/array/subArray', method: 'all', target: 'subArray'},
-    {route: '/function', method: 'all', target: fn}
+    {path: '/string', method: 'all', target: 'string'},
+    {path: '/object', method: 'get', target: {controller: 'object', action: 'index'}},
+    {path: '/object/string', method: 'all', target: 'string'},
+    {path: '/object/object', method: 'all', target: {controller: 'subObject', action: 'subAction'}},
+    {path: '/object/method', method: 'post', target: 'postAction'},
+    {path: '/object/deep/deeper/deepest', method: 'all', target: 'deepest'},
+    {path: '/array', method: 'all', target: ['item0', {controller: 'array', action: 'item1'}, fn, 'subItem0', {controller: 'array', action: 'subItem1'}, fn]},
+    {path: '/array', method: 'get', target: {controller: 'array', action: 'getAction'}},
+    // {path: '/array', method: 'all', target: 'item0'},
+    // {path: '/array', method: 'all', target: {controller: 'array', action: 'item1'}},
+    // {path: '/array', method: 'all', target: fn},
+    // {path: '/array', method: 'all', target: 'subItem0'},
+    // {path: '/array', method: 'all', target: {controller: 'array', action: 'subItem1'}},
+    // {path: '/array', method: 'all', target: fn},
+    {path: '/array/subArray', method: 'all', target: 'subArray'},
+    {path: '/function', method: 'all', target: fn}
   ];
 
   it('should compile routes', function () {
-    // assert.equal(JSON.stringify(routeCompiler.compile(routes)), JSON.stringify(expected));
+    assert.equal(JSON.stringify(sails.routeCompiler.compile(routes)), JSON.stringify(expected));
     assert.deepEqual(sails.routeCompiler.compile(routes), expected);
   });
 
