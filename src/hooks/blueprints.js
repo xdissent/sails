@@ -44,11 +44,17 @@ module.exports = function (_container, config, controllers, moduleLoader, router
       actionWasMissing = parsed && !parsed[1];
     }
 
+    if (_.isArray(target)) {
+      return _.map(target, function (target) {
+        return this._targetFilter(target, route);
+      }, this);
+    }
+
     target = controllers._targetFilter(target);
 
-    if (!target || !target.controller || !target.action) return target;
-    if (_.isArray(target)) return _.map(target, this._targetFilter, this);
-    if (!_.isPlainObject(target)) return target;
+    if (!_.isPlainObject(target) || !target.controller || !target.action) {
+      return target;
+    }
 
     // if (actionWasMissing && route.method === 'all' && target.action === 'index') {
     //   return this._blueprintRoutes(target.controller, route.path);

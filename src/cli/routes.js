@@ -10,11 +10,6 @@ module.exports = function (program) {
     .action(function (opts) {
 
       var sails = new Sails({
-          policies: {'*': 'test'},
-          routes: {
-            '/': 'home.index',
-            '/view': 'home/index'
-          },
           environment: program.environment,
           appPath: path.resolve(program.app || '.'),
           log: {level: program.verbose ? 'verbose' : undefined}
@@ -34,7 +29,7 @@ module.exports = function (program) {
             return filter.name || 'anonymous';
           });
 
-        console.log(util.columnize(['NAME', 'METHOD', 'ROUTE', 'TARGET'], routes), '\n');
+        console.log('\n', util.columnize(['NAME', 'METHOD', 'ROUTE', 'TARGET'], routes), '\n');
         console.log('FILTERS:', filters, '\n');
       });
     });

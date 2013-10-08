@@ -5,7 +5,7 @@ module.exports = function (config, middleware, csrf, router, log) {
   log = log.namespace('cors');
 
   middleware.insertAfter(csrf, cors);
-  router.prependFilter(corsRoutesFilter);
+  router.prependFilter(corsRoutesFilter());
 
   config.watch('cors', function () {
     log.verbose('Config changed');
@@ -14,8 +14,10 @@ module.exports = function (config, middleware, csrf, router, log) {
 
   return cors;
 
-  function corsRoutesFilter (routes) {
-    return _(routes).map(routeFilter).flatten().compact().value();
+  function corsRoutesFilter () {
+    return function cors (routes) {
+      return _(routes).map(routeFilter).flatten().compact().value();
+    };
   }
 
   function routeFilter (route) {
