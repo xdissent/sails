@@ -96,6 +96,7 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
   };
 
   Router.prototype.unroute = function (where, self) {
+    if (_.isString(where)) where = {name: where};
     return _.remove(this._routes, where, self);
   };
 
@@ -105,23 +106,7 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
     return this;
   };
 
-  Router.prototype.setRequestTarget = function(target) {
-    var fn = function serveTarget (req, res, next) {
-      req.target = target;
-      next();
-    };
-    fn.target = target;
-    return fn;
-  };
-
-  Router.prototype.all = function (path, target) {
-    _.each(methods, function (method) {
-      this.route(method, path, target);
-    }, this);
-    return this;
-  };
-
-  _.each(methods, function (method) {
+  _.each(methods.concat('all'), function (method) {
     Router.prototype[method] = function (path, target) {
       return this.route(method, path, target);
     };
