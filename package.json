@@ -71,7 +71,7 @@
     "request": "*",
     "supertest": "~0.8.0",
     "tmp": "0.0.21",
-    "sails-memory": "git://github.com/balderdashy/sails-memory.git#associations",
+    "sails-memory": "git://github.com/xdissent/sails-memory.git#fun",
     "should": "~1.3.0",
     "sinon": "~1.7.3"
   },
