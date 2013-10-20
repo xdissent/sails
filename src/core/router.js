@@ -1,7 +1,7 @@
 var _ = require('lodash'),
   events = require('events'),
   util = require('util'),
-  methods = require('express/node_modules/methods');
+  methods = require('express/node_modules/methods').concat('all');
 
 module.exports = function (config, http, middleware, routeCompiler, log) {
 
@@ -106,7 +106,7 @@ module.exports = function (config, http, middleware, routeCompiler, log) {
     return this;
   };
 
-  _.each(methods.concat('all'), function (method) {
+  _.each(methods, function (method) {
     Router.prototype[method] = function (path, target) {
       return this.route(method, path, target);
     };

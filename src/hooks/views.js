@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-  path = require('path');
+  path = require('path'),
   util = require('util'),
   glob = require('glob'),
   ExpressView = require('express/lib/view'),

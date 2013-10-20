@@ -1,6 +1,6 @@
 var should = require('should'),
   sinon = require('sinon'),
-  methods = require('express/node_modules/methods'),
+  methods = require('express/node_modules/methods').concat('all'),
   Sails = require('../../src'),
   sails = new Sails(),
   router = null,
@@ -24,7 +24,7 @@ describe('router', function () {
       }
     };
 
-    methods.concat('all').forEach(function (method) {
+    methods.forEach(function (method) {
       mocks.http[method] = sinon.spy(function (route) {
         mocks.http.routes[method] = (mocks.http.routes[method] || []).concat(route);
       });
@@ -421,7 +421,7 @@ describe('router', function () {
 
     describe('shortcuts', function () {
 
-      methods.concat('all').forEach(function (method) {
+      methods.forEach(function (method) {
         describe(method, function () {
           it('should be exposed as a method', function () {
             router.should.have.property(method);

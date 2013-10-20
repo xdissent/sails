@@ -18,16 +18,21 @@ module.exports = function (_container) {
 
     watch.on('all', function (type, file, stat) {
       var config = _container.get('config');
-      if (!config.watcher) return;
+      var log = _container.get('log');
+
+      if (config.watcher === false) return;
       if (!pattern.test(file)) return;
       if (!_.contains(files, file)) files.push(file);
+
+      var maxTimeout = config.watcher.maxTimeout || 1000,
+        timeout = config.watcher.timeout || 250;
 
       clearTimeout(watchTimeout);
       watchTime = watchTime || new Date();
 
-      if (watchTime - new Date() >= config.watcher.maxTimeout) return watched();
+      if (new Date() - watchTime >= maxTimeout) return watched();
 
-      watchTimeout = setTimeout(watched, config.watcher.timeout);
+      watchTimeout = setTimeout(watched, timeout);
 
       function watched () {
         clearTimeout(watchTimeout);

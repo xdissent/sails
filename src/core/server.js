@@ -1,4 +1,5 @@
 var util = require('util'),
+  fs = require('fs'),
   _ = require('lodash');
 
 module.exports = function (config, http, router) {
@@ -20,6 +21,12 @@ module.exports = function (config, http, router) {
       options = {};
     }
     options = options || {};
+    if (options.key && fs.existsSync(options.key)) {
+      options.key = fs.readFileSync(options.key);
+    }
+    if (options.cert && fs.existsSync(options.cert)) {
+      options.cert = fs.readFileSync(options.cert);
+    }
     return new Server(options, listener);
   };
 
@@ -28,7 +35,9 @@ module.exports = function (config, http, router) {
       callback = args.pop();
 
     if (!_.isFunction(callback)) {
-      args.push(callback);
+      if (!_.isUndefined(callback) && !_.isNull(callback)) {
+        args.push(callback);
+      }
       callback = function (err) {
         if (err) throw err;
       };
@@ -45,7 +54,8 @@ module.exports = function (config, http, router) {
         self.removeListener('listening', self._listening);
         self._error = null;
         self._listening = null;
-        callback(err);
+        if (err) return callback(err);
+        callback();
       };
     this._error = runCallback;
     this.on('error', this._error);
@@ -59,13 +69,13 @@ module.exports = function (config, http, router) {
     }
 
     if (args.length === 0) {
-      args.push(config.server.port);
-      args.push(config.server.host);
+      args.push(config.server && config.server.port || 1337);
+      args.push(config.server && config.server.host || 'localhost');
     } else if (args.length === 1) {
-      args.push(config.server.host);
+      args.push(config.server && config.server.host || 'localhost');
     } else if (args.length === 2) {
       if (!_.isString(args[1])) {
-        args.splice(1, 0, config.server.host);
+        args.splice(1, 0, config.server && config.server.host || 'localhost');
       }
     }
 
@@ -86,7 +96,8 @@ module.exports = function (config, http, router) {
         self.removeListener('close', self._close);
         self._error = null;
         self._close = null;
-        callback(err);
+        if (err) return callback(err);
+        callback();
       };
     this._error = runCallback;
     this.on('error', this._error);
@@ -98,5 +109,6 @@ module.exports = function (config, http, router) {
     BaseServer.prototype.close.call(this);
   };
 
-  return Server.createServer(config.server.options, http);
+  var options = config.server || {};
+  return Server.createServer(options, http);
 };

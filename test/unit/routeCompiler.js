@@ -69,12 +69,6 @@ describe('route compiler', function () {
     {path: '/object/deep/deeper/deepest', method: 'all', target: 'deepest'},
     {path: '/array', method: 'all', target: ['item0', {controller: 'array', action: 'item1'}, fn, 'subItem0', {controller: 'array', action: 'subItem1'}, fn]},
     {path: '/array', method: 'get', target: {controller: 'array', action: 'getAction'}},
-    // {path: '/array', method: 'all', target: 'item0'},
-    // {path: '/array', method: 'all', target: {controller: 'array', action: 'item1'}},
-    // {path: '/array', method: 'all', target: fn},
-    // {path: '/array', method: 'all', target: 'subItem0'},
-    // {path: '/array', method: 'all', target: {controller: 'array', action: 'subItem1'}},
-    // {path: '/array', method: 'all', target: fn},
     {path: '/array/subArray', method: 'all', target: 'subArray'},
     {path: '/function', method: 'all', target: fn}
   ];

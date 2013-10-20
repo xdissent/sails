@@ -10,8 +10,10 @@ module.exports = function (appPath) {
       'adapters',
       'models',
       'sockets',
+      'pubsub',
       'metadata',
       'bodyParser',
+      'poweredBy',
       'methodOverride',
       'cookies',
       'session',
@@ -28,19 +30,8 @@ module.exports = function (appPath) {
       'notFound',
       'error'
     ],
-    // hooks: {
-    //   request:      require('../hooks/request'),
-    //   orm:          require('../hooks/orm'),
-    //   views:        require('../hooks/views'),
-    //   controllers:  require('../hooks/controllers'),
-    //   sockets:      require('../hooks/sockets'),
-    //   pubsub:       require('../hooks/pubsub'),
-    //   policies:     require('../hooks/policies'),
-    //   csrf:         require('../hooks/csrf'),
-    //   cors:         require('../hooks/cors'),
-    //   i18n:         require('../hooks/i18n'),
-    //   http:         require('../hooks/http')
-    // },
+
+    poweredBy: 'Sails',
 
     notFound: {
       message: 'Not Found',
@@ -51,28 +42,7 @@ module.exports = function (appPath) {
       handler: undefined
     },
 
-    // // Default 404 (not found) handler
-    // 404: function notFound (message, req, res) {
-    //   res.send(404, message || undefined);
-    // },
-
-    // // Default 500 (server error) handler
-    // 500: function (err, req, res) {
-    //   res.send(err, 500);
-    // },
-
-    // // Default 403 (forbidden) handler
-    // 403: function (err, req, res) {
-    //   res.send(err, 403);
-    // },
-
-    // // Default 400 (bad request) handler
-    // 400: function (err, req, res) {
-    //   res.send(err, 400);
-    // },
-
     server: {
-      options: undefined,
       port: 1337,
       host: 'localhost'
     },
@@ -249,44 +219,6 @@ module.exports = function (appPath) {
       models: true
     },
 
-    // // Custom options for express server
-    // express: {
-      
-    //   // Options to pass directly into the Express server
-    //   // when it is instantiated
-    //   //      (or false to disable)
-    //   serverOptions: false,
-
-    //   // Custom express middleware function to use
-    //   customMiddleware: false,
-
-    //   // HTTP body parser middleware to use
-    //   //      (or false to disable)
-    //   //
-    //   bodyParser: express.bodyParser,
-
-    //   // If bodyParser doesn't understand the HTTP body request data, 
-    //   // run it again with an artificial header, forcing it to try and parse
-    //   // the request body as JSON
-    //   // (this allows JSON to be used as your request data without the need to 
-    //   // specify a 'Content-type: application/json' header)
-    //   retryBodyParserWithJSON: true,
-
-    //   // Cookie parser middleware to use
-    //   //      (or false to disable)
-    //   //
-    //   cookieParser: express.cookieParser,
-
-    //   // HTTP method override middleware
-    //   //      (or false to disable)
-    //   //
-    //   // This option allows artificial query params to be passed to trick 
-    //   // Express into thinking a different HTTP verb was used.
-    //   // Useful when supporting an API for user-agents which don't allow 
-    //   // PUT or DELETE requests
-    //   methodOverride: express.methodOverride
-    // },
-
     sockets: {
 
       // Setup adapter to use for socket.io MQ (pubsub) store
@@ -422,9 +354,6 @@ module.exports = function (appPath) {
       resource: '/socket.io'
 
     },
-
-    // SSL cert settings go here
-    ssl: {},
 
     grunt: {
       tasks: ['default'],

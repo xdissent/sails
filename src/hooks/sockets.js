@@ -6,9 +6,8 @@ var _ = require('lodash'),
   connect = require('express/node_modules/connect'),
   parseSignedCookie = connect.utils.parseSignedCookie,
   Session = connect.middleware.session.Session,
-  BaseResponse = require('express/lib/response'),
-  BaseRequest = require('express/lib/request'),
-  util = require('util');
+  BaseResponse = require('http').ServerResponse.prototype,
+  BaseRequest = require('http').IncomingMessage.prototype;
 
 module.exports = function (config, server, log, session, cookies, http) {
   var sockets = createServer();
@@ -103,21 +102,25 @@ module.exports = function (config, server, log, session, cookies, http) {
       return log.error('No valid session for this socket');
     }
     socket.on('request', function (method, url, body, headers, callback) {
-      var req = Object.create(BaseRequest, {
+
+      var req = {
         method: method,
         ip: socket.handshake.address.address,
         port: socket.handshake.address.port,
         url: url,
         socket: socket,
+        isSocket: true,
         body: body,
-        headers: _.extend({cookie: socket.handshake.headers.cookie}, headers)
-      });
+        headers: _.extend({cookie: socket.handshake.headers.cookie}, headers),
+        __proto__: BaseRequest
+      };
 
-      var res = Object.create(BaseResponse, {
+      var res = {
         end: function (body) {
-          callback(this.statusCode, this._headers, body);
-        }
-      });
+          callback(res.statusCode, res._headers, body);
+        },
+        __proto__: BaseResponse
+      };
       
       http(req, res);
     });

@@ -9,7 +9,6 @@ function Sails (overrides) {
   var container = this.container = dependable.container();
   container.register('overrides', overrides || {});
   container.load(Sails.corePath);
-  if (this.config.globals.sails) this.globals.globalize('sails', this);
 }
 
 Sails.corePath = path.join(__dirname, 'core');

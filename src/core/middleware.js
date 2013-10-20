@@ -18,7 +18,7 @@ module.exports = function (http, log) {
 
     if (!_.isString(route)) throw new Error('Invalid middleware route');
     if (!_.isFunction(fn)) throw new Error('Invalid middleware');
-    if (!_.isNumber(index) || index > http.stack.length || index < -1) {
+    if (!_.isNumber(index) || index > http.stack.length || index < -http.stack.length) {
       throw new Error('Invalid middleware index');
     }
 
@@ -49,15 +49,20 @@ module.exports = function (http, log) {
 
   Middleware.prototype.insertBefore = function (before, route, fn) {
     if (!_.isFunction(fn)) fn = route, route = null;
-    this.use(route, fn, this.indexOf(before));
+    var index = this.indexOf(before);
+    if (index < 0) throw new Error('Could not find before middleware');
+    this.use(route, fn, index);
   };
 
   Middleware.prototype.insertAfter = function (after, route, fn) {
     if (!_.isFunction(fn)) fn = route, route = null;
+    var index = this.indexOf(after);
+    if (index < 0) throw new Error('Could not find after middleware');
     this.use(route, fn, this.indexOf(after) + 1);
   };
 
   Middleware.prototype.indexOf = function(find) {
+    if (_.isUndefined(find) || _.isNull(find)) return -1;
     return _.findIndex(http.stack, function (mw) {
       return mw.handle.name === find || mw.handle.__middleware === find || mw.handle === find;
     });

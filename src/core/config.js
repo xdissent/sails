@@ -50,7 +50,7 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
       path = (this.paths && this.paths.config) || (overrides.paths && overrides.paths.config) || defaults.paths.config;
 
     if (typeof path !== 'string') {
-      throw new Error('Invalid config path' + path);
+      throw new Error('Invalid config path ' + path);
     }
 
     var reloaded = 0;
@@ -70,13 +70,13 @@ module.exports = function (overrides, defaults, environment, moduleLoader, watch
       path = config.paths.config;
     }
 
-    this.update(config);
+    this._update(config);
     this._watch();
 
     return this;
   };
 
-  Config.prototype.update = function(config) {
+  Config.prototype._update = function(config) {
     var changed = [], removed = [];
 
     _.forIn(config, function (val, key) {
