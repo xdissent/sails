@@ -20,8 +20,9 @@ module.exports[500] = function serverErrorOccurred(errors, req, res) {
    * the same interface for receiving socket messages.
    */
 
-  var viewFilePath = '500';
-  var statusCode = 500;
+  var viewFilePath = '500',
+      statusCode = 500,
+      i, errorToLog, errorToJSON;
 
   var result = {
     status: statusCode
@@ -30,9 +31,23 @@ module.exports[500] = function serverErrorOccurred(errors, req, res) {
   // Normalize a {String|Object|Error} or array of {String|Object|Error} 
   // into an array of proper, readable {Error}
   var errorsToDisplay = sails.util.normalizeErrors(errors);
+  for (i in errorsToDisplay) {
 
-  // Log error(s)
-  sails.log.error(errorsToDisplay);
+    // Log error(s) as clean `stack`
+    // (avoids ending up with \n, etc.)
+    if ( errorsToDisplay[i].original ) {
+      errorToLog = sails.util.inspect(errorsToDisplay[i].original);
+    }
+    else {
+      errorToLog = errorsToDisplay[i].stack;
+    }
+    sails.log.error('Server Error (500)');
+    sails.log.error(errorToLog);
+
+    // Use original error if it exists
+    errorToJSON = errorsToDisplay[i].original || errorsToDisplay[i].message;
+    errorsToDisplay[i] = errorToJSON;
+  }
 
   // Only include errors if application environment is set to 'development'
   // In production, don't display any identifying information about the error(s)
@@ -45,7 +60,13 @@ module.exports[500] = function serverErrorOccurred(errors, req, res) {
     return res.json(result, result.status);
   }
 
-  res.status(result.status).render(viewFilePath, result, function (err) {
+  // Set status code and view locals
+  res.status(result.status);
+  for (var key in result) {
+    res.locals[key] = result[key];
+  }
+  // And render view
+  res.render(viewFilePath, result, function (err) {
     // If the view doesn't exist, or an error occured, just send JSON
     if (err) { return res.json(result, result.status); }
     
