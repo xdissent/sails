@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-module.exports = function (params, models, log) {
+module.exports = function (params, orm, log) {
 
   log = log.namespace('rest');
 
@@ -33,7 +33,7 @@ module.exports = function (params, models, log) {
     controller: {
       find: function find (req, res, next) {
         
-        var Model = models[req.target.controller];
+        var Model = orm.models[req.target.controller];
 
         if (!Model) return next();
 
@@ -78,7 +78,7 @@ module.exports = function (params, models, log) {
 
       create: function create (req, res, next) {
         log.verbose('REST Create');
-        var Model = models[req.target.controller];
+        var Model = orm.models[req.target.controller];
 
         if (!Model) return next();
 
@@ -98,7 +98,7 @@ module.exports = function (params, models, log) {
       },
 
       update: function update (req, res, next) {
-        var Model = models[req.target.controller];
+        var Model = orm.models[req.target.controller];
 
         if (!Model) return next();
 
@@ -122,7 +122,7 @@ module.exports = function (params, models, log) {
       },
 
       destroy: function destroy (req, res, next) {
-        var Model = models[req.target.controller];
+        var Model = orm.models[req.target.controller];
 
         if (!Model) return next();
 

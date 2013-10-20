@@ -1,14 +1,11 @@
 module.exports = function (appPath) {
-
-  // Set up config defaults
   return {
-
-    // Default hooks
     hooks: [
       'grunt',
       'static',
-      'adapters',
-      'models',
+      // 'adapters',
+      // 'models',
+      'orm',
       'sockets',
       'pubsub',
       'metadata',
@@ -159,29 +156,30 @@ module.exports = function (appPath) {
       blueprints:   appPath + '/api/blueprints'
     },
 
-    // Default model properties
-    adapters: {
-      'default': 'disk',
-      memory: {
-        module: 'sails-memory'
-      },
-      disk: {
-        module: 'sails-disk'
-      },
-      mongo: {
-        module    : 'sails-mongo',
-        host    : 'localhost',
-        user    : 'root'
-      },
-      mysql: {
-        module    : 'sails-mysql',
-        host    : 'localhost',
-        user    : 'root'
-      },
-      postgresql: {
-        module    : 'sails-postgresql',
-        host    : 'localhost',
-        user    : 'root'
+    orm: {
+      connections: {
+        'default': 'disk',
+        memory: {
+          adapter: 'sails-memory'
+        },
+        disk: {
+          adapter: 'sails-disk'
+        },
+        mongo: {
+          adapter: 'sails-mongo',
+          host: 'localhost',
+          user: 'root'
+        },
+        mysql: {
+          adapter: 'sails-mysql',
+          host: 'localhost',
+          user: 'root'
+        },
+        postgresql: {
+          adapter: 'sails-postgresql',
+          host: 'localhost',
+          user: 'root'
+        }
       }
     },
 

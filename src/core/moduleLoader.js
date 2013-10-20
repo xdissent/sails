@@ -1,3 +1,3 @@
 module.exports = function () {
-  return require('../../lib/moduleloader');
+  return require('../../lib/hooks/moduleloader')({});
 };

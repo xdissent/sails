@@ -12,14 +12,14 @@ describe('rest', function () {
       blueprints: {
         enabled: ['rest']
       },
-      hooks: ['bodyParser', 'adapters', 'models', 'params', 'controllers', 'blueprints'],
+      hooks: ['bodyParser', 'orm', 'params', 'controllers', 'blueprints'],
       server: {port: 0, host: 'localhost'},
       routes: {},
-      adapters: {'default': 'memory'}
+      orm: {connections: {'default': 'memory'}}
     });
     sails.lift(function (err) {
       if (err) return done(err);
-      sails.hooks.models.foo.createEach([
+      sails.hooks.orm.models.foo.createEach([
         {name: 'one', description: 'uno', color: 'red'},
         {name: 'two', description: 'dos', color: 'blue'},
         {name: 'three', description: 'tres', color: 'red'}

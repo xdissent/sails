@@ -1,4 +1,4 @@
-module.exports = function (models) {
+module.exports = function () {
   return {
     routes: {
       '/test': 'test',

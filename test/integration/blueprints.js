@@ -11,7 +11,7 @@ describe('blueprints', function () {
       blueprints: {
         enabled: ['test']
       },
-      hooks: ['adapters', 'models', 'controllers', 'blueprints'],
+      hooks: ['controllers', 'blueprints'],
       server: {port: 0, host: 'localhost'},
       routes: {
         '/optional': 'home.optional',
