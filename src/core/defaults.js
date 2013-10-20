@@ -3,8 +3,6 @@ module.exports = function (appPath) {
     hooks: [
       'grunt',
       'static',
-      // 'adapters',
-      // 'models',
       'orm',
       'sockets',
       'pubsub',

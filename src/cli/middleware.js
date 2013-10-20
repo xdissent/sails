@@ -26,7 +26,10 @@ module.exports = function (program) {
             (middleware.handle.length && middleware.handle.length > 3 && '*' || '')
           ];
         });
-        console.log('\n', util.columnize(['#', 'NAME', 'ROUTE', 'ERR'], middlewares), '\n');
+        console.log('');
+        console.log(util.columnize(['#', 'NAME', 'ROUTE', 'ERR'], middlewares), '\n');
+
+        sails.shutdown(function () {});
       });
     });
 };

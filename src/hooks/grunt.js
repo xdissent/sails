@@ -12,9 +12,6 @@ module.exports = function (config, log, watcher, done) {
 
   function Grunt () {
     var self = this;
-    process.on('exit', function () {
-      self.unload(function () {});
-    });
     config.watch('grunt', function () {
       log.verbose('Config changed');
       self.reload(function () {});
@@ -65,7 +62,27 @@ module.exports = function (config, log, watcher, done) {
     }
 
     log.verbose('Forking');
-    this._child = child_process.fork(path.resolve(__dirname, '_grunt.js'), {cwd: config.paths.app});
+    this._child = child_process.fork(path.resolve(__dirname, '_grunt'), [], {
+      silent: true,
+      cwd: config.paths.app
+    });
+
+    this._child.stdout.on('data', function (data) {
+      data = data.toString().replace(/\n$/, '');
+      if (data.length === 0) return;
+
+      if (data.match(/Warning:/)) {
+        log.warn(data);
+        return;
+      }
+
+      if (data.match(/Aborted due to warnings/) || data.match(/ParseError/)) {
+        log.error(data);
+        return;
+      }
+
+      log.verbose(data);
+    });
 
     var callback = function () {
         log.error('Child died');
@@ -118,6 +135,8 @@ module.exports = function (config, log, watcher, done) {
       self.reload(function () {});
     });
   };
+
+  Grunt.prototype.shutdown = Grunt.prototype.unload;
 
   return new Grunt();
 };

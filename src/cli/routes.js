@@ -29,8 +29,11 @@ module.exports = function (program) {
             return filter.name || 'anonymous';
           });
 
-        console.log('\n', util.columnize(['NAME', 'METHOD', 'ROUTE', 'TARGET'], routes), '\n');
+        console.log('');
+        console.log(util.columnize(['NAME', 'METHOD', 'ROUTE', 'TARGET'], routes), '\n');
         console.log('FILTERS:', filters, '\n');
+
+        sails.shutdown(function () {});
       });
     });
 };

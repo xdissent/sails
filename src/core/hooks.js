@@ -50,6 +50,14 @@ module.exports = function (_container, config, moduleLoader, router, log, done) 
     _.each(config.hooks, function (name, index) {
       hooks[name] = results[index];
     });
+
+    hooks.shutdown = function shutdown (cb) {
+      async.each(_.values(hooks), function (hook, cb) {
+        if (hook && _.isFunction(hook.shutdown)) return hook.shutdown(cb);
+        cb();
+      }, cb);
+    };
+    
     done(null, hooks);
   });
 };

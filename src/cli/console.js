@@ -19,7 +19,6 @@ module.exports = function (program) {
       sails.boot(function (err) {
         if (err) throw err;
         repl.start({prompt: prompt}).on('exit', function () {
-          sails.server.close();
           process.exit();
         });
       });

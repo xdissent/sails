@@ -3,6 +3,16 @@ var path = require('path'),
   _ = require('lodash');
 
 module.exports = function (_container) {
+  var watchers = [];
+
+  watcher.shutdown = function (cb) {
+    _.each(watchers, function (watcher) {
+      watcher.close();
+    });
+    watchers = [];
+    cb();
+  };
+
   return watcher;
 
   function watcher (file, pattern, callback) {
@@ -18,7 +28,6 @@ module.exports = function (_container) {
 
     watch.on('all', function (type, file, stat) {
       var config = _container.get('config');
-      var log = _container.get('log');
 
       if (config.watcher === false) return;
       if (!pattern.test(file)) return;
@@ -41,5 +50,7 @@ module.exports = function (_container) {
         callback(files);
       }
     });
+
+    watchers.push(watch);
   }
 };
