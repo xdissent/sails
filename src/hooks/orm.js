@@ -1,14 +1,37 @@
 var orm = require('../../lib/hooks/orm'),
   _ = require('lodash');
 
-module.exports = function (appPath, config, globals, moduleLoader, log, done) {
+module.exports = function (appPath, config, globals, moduleLoader, watcher, log, done) {
 
   log = log.namespace('orm');
 
   function ORM () {
+    this._modelWatcher = null;
+    this._adapterWatcher = null;
     this.globalized = false;
     this.models = {};
-    this.reload(done);
+    this.reload(function(err, self) {
+      if (err) return done(err);
+
+      config.watch('paths', function (key, previous, current) {
+        var changed = false;
+        if ((previous && previous.adapters) !== (current && current.adapters)
+            || (previous && previous.models) !== (current && current.models)) {
+          log.verbose('ORM paths changed');
+          self.reload();
+        }
+      });
+
+      config.watch('orm', function (key, previous, current) {
+        var changed = false;
+        if ((previous && previous.connections) !== (current && current.connections)) {
+          log.verbose('ORM connections changed');
+          self.reload();
+        }
+      });
+
+      done(null, self);
+    });
   }
 
   ORM.prototype._sails = function () {
@@ -49,6 +72,11 @@ module.exports = function (appPath, config, globals, moduleLoader, log, done) {
 
   ORM.prototype.reload = function (cb) {
     log.verbose('Reloading ORM');
+
+    cb = cb || function (err) {
+      if (err) throw err;
+    };
+
     var sails = this._sails(),
       legacy = orm(sails),
       self = this;
@@ -60,11 +88,13 @@ module.exports = function (appPath, config, globals, moduleLoader, log, done) {
       self.clear();
       self.update(sails.models);
       self.globalize();
+      self._watchModels();
+      self._watchAdapters();
       cb(null, self);
     });
   };
 
-  ORM.prototype.globalize = function() {
+  ORM.prototype.globalize = function () {
     if (this.globalized || !config.globals || !config.globals.models) return;
     _.each(this.models, function (model) {
       log.verbose('Globalizing model', model.globalId);
@@ -73,12 +103,32 @@ module.exports = function (appPath, config, globals, moduleLoader, log, done) {
     this.globalized = true;
   };
 
-  ORM.prototype.unglobalize = function() {
+  ORM.prototype.unglobalize = function () {
     if (!this.globalized) return;
     _.each(this.models, function (model) {
       globals.unglobalize(model._model.globalId);
     });
     this.globalized = false;
+  };
+
+  ORM.prototype._watchModels = function () {
+    if (this._modelWatcher) this._modelWatcher.close();
+    log.verbose('Watching', config.paths.models, 'for changes');
+    var self = this;
+    this._modelWatcher = watcher(config.paths.models, function () {
+      log.verbose('Model files changed');
+      self.reload();
+    });
+  };
+
+  ORM.prototype._watchAdapters = function () {
+    if (this._adapterWatcher) this._adapterWatcher.close();
+    log.verbose('Watching', config.paths.adapters, 'for changes');
+    var self = this;
+    this._adapterWatcher = watcher(config.paths.adapters, function () {
+      log.verbose('Adapter files changed');
+      self.reload();
+    });
   };
 
   new ORM();
