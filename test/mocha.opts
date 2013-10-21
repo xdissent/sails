@@ -1,3 +1,4 @@
 --timeout 5000
 --reporter spec
 --ui bdd
+test/unit/**/*.js test/integration/**/*.js
