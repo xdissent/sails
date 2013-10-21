@@ -14,7 +14,6 @@ module.exports = function (appPath, config, globals, moduleLoader, watcher, log,
       if (err) return done(err);
 
       config.watch('paths', function (key, previous, current) {
-        var changed = false;
         if ((previous && previous.adapters) !== (current && current.adapters)
             || (previous && previous.models) !== (current && current.models)) {
           log.verbose('ORM paths changed');
@@ -23,13 +22,18 @@ module.exports = function (appPath, config, globals, moduleLoader, watcher, log,
       });
 
       config.watch('orm', function (key, previous, current) {
-        var changed = false;
         if ((previous && previous.connections) !== (current && current.connections)) {
           log.verbose('ORM connections changed');
           self.reload();
         }
       });
 
+      config.watch('globals', function (key, previous, current) {
+        if ((previous && previous.models) !== (current && current.models)) {
+          log.verbose('ORM globals changed');
+          self.reload();
+        }
+      });
       done(null, self);
     });
   }
@@ -106,7 +110,8 @@ module.exports = function (appPath, config, globals, moduleLoader, watcher, log,
   ORM.prototype.unglobalize = function () {
     if (!this.globalized) return;
     _.each(this.models, function (model) {
-      globals.unglobalize(model._model.globalId);
+      log.verbose('Unglobalizing model', model.globalId);
+      globals.unglobalize(model.globalId);
     });
     this.globalized = false;
   };

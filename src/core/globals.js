@@ -34,7 +34,7 @@ module.exports = function (log) {
     delete this._globals[name];
   };
 
-  Globals.prototype.unglobalizeAll = function () {
+  Globals.prototype.shutdown = Globals.prototype.unglobalizeAll = function () {
     log.verbose('Removing all globals');
     this.unglobalize(_.keys(this._globals));
   };

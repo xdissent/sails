@@ -18,6 +18,7 @@ module.exports = function (appPath) {
       'flash',
       'params',
       'qualifiers',
+      'services',
       'controllers',
       'blueprints',
       'views',
