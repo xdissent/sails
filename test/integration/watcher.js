@@ -10,6 +10,7 @@ describe('watcher', function () {
   beforeEach(function (done) {
     tmp.dir(function (err, dir) {
       if (err) return done(err);
+      fs.writeFileSync(path.join(dir, '.tmp'));
       appPath = dir;
       sails = new Sails({appPath: appPath, hooks: []});
       sails.container.get('watcher', function (err, result) {

@@ -11,7 +11,7 @@ module.exports = function (program) {
     .command('new [path]')
     .description('Create a new Sails app')
     .option('-c, --coffee', 'Use CoffeeScript boilerplate')
-    .option('-t, --template <engine>', 'Set template engine (ejs|jade|hbs|haml)', 'ejs')
+    .option('-t, --template <engine>', 'Set template engine (ejs|jade|hbs|handlebars|haml)', 'ejs')
     .option('-l, --linker', 'Enable asset linker')
     .option('-I, --no-npm-install', 'Do not install NPM dependencies')
     .action(function (dest, opts) {
@@ -21,6 +21,11 @@ module.exports = function (program) {
 
       if (!fs.existsSync(dest)) fs.mkdirsSync(dest);
       if (!isDir(dest)) throw new Error(dest + ' exists and is not a directory');
+      if (fs.readdirSync(dest).length > 0) throw new Error(dest + ' is not empty');
+
+      fs.writeFileSync(path.join(dest, 'package.json'), '');
+
+      if (opts.template === 'handlebars') opts.template = 'hbs';
 
       var sails = new Sails({
         hooks: [],
@@ -100,6 +105,7 @@ module.exports = function (program) {
         fs.writeFileSync(fullPath, rendered, 'utf8');
       }
 
+      // DEAR GOD
       function copy (origFile, newFile, cb) {
         if (typeof newFile === 'function') {
           cb = newFile;

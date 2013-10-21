@@ -11,7 +11,7 @@ function capitalize(string) {
 }
 
 describe('API and adapter generators', function () {
-	var sailsBin = './bin/sails.js';
+	var sailsBin = './bin/sails';
 	var appName = 'testApp';
 
 	before(function(done) {
@@ -49,7 +49,7 @@ describe('API and adapter generators', function () {
 		it('should throw an error if no model name is specified', function(done) {
 
 			exec(sailsBin + ' generate model', function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
 			});
 		});
@@ -70,8 +70,32 @@ describe('API and adapter generators', function () {
 		it('should throw an error if a model with the same name exists', function(done) {
 
 			exec(sailsBin + ' generate model ' + modelName , function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
+			});
+		});
+
+		describe('with coffee option', function () {
+
+			it('should create a model file in models folder', function(done) {
+
+				exec(sailsBin + ' generate model ' + modelName + ' --coffee', function (err) {
+					if (err) done(new Error(err));
+
+					assert.doesNotThrow(function() {
+						fs.readFileSync('./api/models/' + capitalize(modelName) + '.coffee', 'utf8');
+					});
+
+					done();
+				});
+			});
+
+			it('should throw an error if a model with the same name exists', function(done) {
+
+				exec(sailsBin + ' generate model ' + modelName + ' --coffee', function (err) {
+					assert.ok(err.code > 0);
+					done();
+				});
 			});
 		});
 	});
@@ -82,7 +106,7 @@ describe('API and adapter generators', function () {
 		it('should throw an error if no controller name is specified', function(done) {
 
 			exec(sailsBin + ' generate controller', function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
 			});
 		});
@@ -103,8 +127,32 @@ describe('API and adapter generators', function () {
 		it('should throw an error if a controller with the same name exists', function(done) {
 
 			exec(sailsBin + ' generate controller ' + controllerName , function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
+			});
+		});
+
+		describe('with coffee option', function () {
+
+			it('should create a controller file in controllers folder', function(done) {
+
+				exec(sailsBin + ' generate controller ' + controllerName + ' --coffee', function (err) {
+					if (err) done(new Error(err));
+
+					assert.doesNotThrow(function() {
+						fs.readFileSync('./api/controllers/' + capitalize(controllerName) + 'Controller.coffee', 'utf8');
+					});
+
+					done();
+				});
+			});
+
+			it('should throw an error if a controller with the same name exists', function(done) {
+
+				exec(sailsBin + ' generate controller ' + controllerName , function (err) {
+					assert.ok(err.code > 0);
+					done();
+				});
 			});
 		});
 	});
@@ -115,7 +163,7 @@ describe('API and adapter generators', function () {
 		it('should throw an error if no adapter name is specified', function(done) {
 
 			exec(sailsBin + ' generate adapter', function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
 			});
 		});
@@ -136,8 +184,32 @@ describe('API and adapter generators', function () {
 		it('should throw an error if an adapter with the same name exists', function(done) {
 
 			exec(sailsBin + ' generate adapter ' + adapterName , function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
+			});
+		});
+
+		describe('with coffee option', function () {
+		
+			it('should create a adapter file in adapters folder', function(done) {
+
+				exec(sailsBin + ' generate adapter ' + adapterName + ' --coffee', function (err) {
+					if (err) done(new Error(err));
+
+					assert.doesNotThrow(function() {
+						fs.readFileSync('./api/adapters/' + capitalize(adapterName) + 'Adapter.coffee', 'utf8');
+					});
+
+					done();
+				});
+			});
+
+			it('should throw an error if an adapter with the same name exists', function(done) {
+
+				exec(sailsBin + ' generate adapter ' + adapterName , function (err) {
+					assert.ok(err.code > 0);
+					done();
+				});
 			});
 		});
 	});
@@ -148,7 +220,7 @@ describe('API and adapter generators', function () {
 		it('should throw an error if no model name is specified', function(done) {
 
 			exec(sailsBin + ' generate', function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
 			});
 		});
@@ -173,9 +245,38 @@ describe('API and adapter generators', function () {
 		it('should throw an error if a controller file and model file with the same name exists', function(done) {
 
 			exec(sailsBin + ' generate ' + modelName , function (err) {
-				assert.equal(err.code, 1);
+				assert.ok(err.code > 0);
 				done();
 			});
+		});
+
+		describe('with coffee option', function () {
+		
+			it('should create a controller and a model file', function(done) {
+
+				exec(sailsBin + ' generate ' + modelName + ' --coffee', function (err) {
+					if (err) done(new Error(err));
+
+					assert.doesNotThrow(function() {
+						fs.readFileSync('./api/models/' + capitalize(modelName) + '.coffee', 'utf8');
+					});
+
+					assert.doesNotThrow(function() {
+						fs.readFileSync('./api/controllers/' + capitalize(modelName) + 'Controller.coffee', 'utf8');
+					});
+
+					done();
+				});
+			});
+
+			it('should throw an error if a controller file and model file with the same name exists', function(done) {
+
+				exec(sailsBin + ' generate ' + modelName , function (err) {
+					assert.ok(err.code > 0);
+					done();
+				});
+			});
+		
 		});
 	});
 });

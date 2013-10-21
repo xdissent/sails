@@ -80,7 +80,6 @@ describe('cors', function () {
       before(function () {
         sails.overrides.cors.allRoutes = true;
         sails.config.reload();
-        done();
       });
 
       it('should set cors headers by default', function (done) {

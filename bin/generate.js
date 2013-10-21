@@ -6,7 +6,7 @@ module.exports = function (sails) {
 	 */
 
 	var _			= require( 'lodash' ),
-		utils		= require( './utils' )(sails),
+		utils		= require( './util' )(sails),
 		fs			= utils.fs,
 		pluralize	= require('pluralize');
 
@@ -29,7 +29,7 @@ module.exports = function (sails) {
 
 		this.generateController = function (entity, options) {
 			var ext = options.ext || 'js';
-			var newControllerPath = sails.config.paths.controllers + '/' + utils.capitalize(entity) + 'Controller.js';
+			var newControllerPath = sails.config.paths.controllers + '/' + utils.capitalize(entity) + 'Controller.' + ext;
 			var newFederatedControllerPath = sails.config.paths.controllers + '/' + entity;
 
 			utils.verifyDoesntExist(newControllerPath, 'A controller already exists at: ' + newControllerPath);

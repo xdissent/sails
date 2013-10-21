@@ -1,6 +1,7 @@
 var util = require('util'),
   fs = require('fs'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  existsSync = fs.existsSync || require('path').existsSync;
 
 module.exports = function (config, http, router) {
 
@@ -21,10 +22,10 @@ module.exports = function (config, http, router) {
       options = {};
     }
     options = options || {};
-    if (options.key && fs.existsSync(options.key)) {
+    if (options.key && existsSync(options.key)) {
       options.key = fs.readFileSync(options.key);
     }
-    if (options.cert && fs.existsSync(options.cert)) {
+    if (options.cert && existsSync(options.cert)) {
       options.cert = fs.readFileSync(options.cert);
     }
     return new Server(options, listener);

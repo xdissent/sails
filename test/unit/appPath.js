@@ -17,10 +17,10 @@ describe('appPath', function () {
   });
 
   it('should use appPath from overrides if present', function () {
-    appPath({appPath: '/dev/null'}).should.equal('/dev/null');
+    appPath({appPath: __dirname}).should.equal(__dirname);
   });
 
   it('should use app paths config from overrides if present', function () {
-    appPath({paths: {app: '/dev/null'}}).should.equal('/dev/null');
+    appPath({paths: {app: __dirname}}).should.equal(__dirname);
   });
 });

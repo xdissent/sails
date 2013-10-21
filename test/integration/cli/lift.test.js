@@ -9,7 +9,7 @@ var spawn = require('child_process').spawn;
 fs.existsSync = fs.existsSync || require('path').existsSync;
 
 describe('Starting sails server with lift', function() {
-	var sailsBin = './bin/sails.js';
+	var sailsBin = './bin/sails';
 	var appName = 'testApp';
 	var sailsServer;
 
@@ -44,12 +44,8 @@ describe('Starting sails server with lift', function() {
 		it('should throw an error', function(done) {
 
 			sailsServer = spawn(sailsBin, ['lift']);
-
-			sailsServer.stderr.on('data', function(data) {
-				var dataString = data + '';
-				assert(dataString.indexOf('error') !== -1);
-				sailsServer.stderr.removeAllListeners('data');
-				sailsServer.kill();
+			sailsServer.on('exit', function(code) {
+				assert(code > 0);
 				done();
 			});
 		});
@@ -119,17 +115,14 @@ describe('Starting sails server with lift', function() {
 			process.chdir(appName);
 
 			sailsServer = spawn(sailsBin, ['lift', '--dev', '--prod']);
-
-			sailsServer.stderr.on('data', function(data) {
-				var dataString = data + '';
-				assert(dataString.indexOf('error') !== -1);
-
+			sailsServer.on('exit', function(code) {
+				assert(code > 0);
 				// Move out of app directory
 				done();
 			});
 		});
 
-		it('--prod should change the environemnt to production', function(done) {
+		it('--prod should change the environment to production', function(done) {
 
 			// Move into app directory
 			process.chdir(appName);
@@ -150,7 +143,7 @@ describe('Starting sails server with lift', function() {
 			});
 		});
 
-		it('--dev should change the environemnt to development', function(done) {
+		it('--dev should change the environment to development', function(done) {
 
 			// Move into app directory
 			process.chdir(appName);
