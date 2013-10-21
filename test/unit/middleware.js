@@ -91,6 +91,58 @@ describe('middleware', function () {
         middleware.use(mw, -6);
       }).should.throw();
     });
+
+    describe('with replace argument', function () {
+    
+      it('should append middleware if no index is given and replace is zero', function () {
+        var mw = function () {};
+        middleware.use(mw, undefined, 0);
+        mocks.http.stack.should.have.lengthOf(6);
+        mocks.http.stack[5].handle.should.equal(mw);
+      });
+
+      it('should insert middleware at the given index if replace is zero', function () {
+        var mw = function () {};
+        middleware.use(mw, 3, 0);
+        mocks.http.stack.should.have.lengthOf(6);
+        mocks.http.stack[3].handle.should.equal(mw);
+      });
+
+      it('should replace middleware at index if replace is one', function () {
+        var mw = function () {};
+        middleware.use(mw, 3, 1);
+        mocks.http.stack.should.have.lengthOf(5);
+        mocks.http.stack[3].handle.should.equal(mw);
+      });
+
+      it('should insert middleware at index and remove number given in replace', function () {
+        var mw = function () {};
+        middleware.use(mw, 3, 2);
+        mocks.http.stack.should.have.lengthOf(4);
+        mocks.http.stack[3].handle.should.equal(mw);
+      });
+
+      it('should accept a negative index', function () {
+        var mw = function () {};
+        middleware.use(mw, -3, 3);
+        mocks.http.stack.should.have.lengthOf(3);
+        mocks.http.stack[2].handle.should.equal(mw);
+      });
+
+      it('should throw on replace greater than length minus index given positive index', function () {
+        var mw = function () {};
+        (function () {
+          middleware.use(mw, 3, 3);
+        }).should.throw();
+      });
+
+      it('should throw on replace greater than zero minus index given negative index', function () {
+        var mw = function () {};
+        (function () {
+          middleware.use(mw, -3, 4);
+        }).should.throw();
+      });
+    });
   });
 
   describe('append', function () {
@@ -213,6 +265,100 @@ describe('middleware', function () {
       }).should.throw();
       (function () {
         middleware.insertAfter({}, mw);
+      }).should.throw();
+    });
+  });
+
+  describe('replace', function () {
+
+    it('should be exposed as a method', function () {
+      middleware.should.have.property('replace');
+      middleware.replace.should.be.a.Function;
+    });
+
+    it('should replace given middleware by function', function () {
+      var mw = function () {};
+      middleware.replace(mocks.http.stack[2].handle, mw);
+      mocks.http.stack.should.have.lengthOf(5);
+      mocks.http.stack[2].handle.should.equal(mw);
+    });
+
+    it('should replace given middleware by name', function () {
+      var mw = function () {};
+      middleware.replace('three', mw);
+      mocks.http.stack.should.have.lengthOf(5);
+      mocks.http.stack[2].handle.should.equal(mw);
+    });
+
+    it('should throw on missing replace middleware', function () {
+      var mw = function () {};
+      (function () {
+        middleware.replace();
+      }).should.throw();
+      (function () {
+        middleware.replace(mw);
+      }).should.throw();
+      (function () {
+        middleware.replace(undefined, mw);
+      }).should.throw();
+      (function () {
+        middleware.replace(null, mw);
+      }).should.throw();
+      (function () {
+        middleware.replace('xxx', mw);
+      }).should.throw();
+      (function () {
+        middleware.replace(123, mw);
+      }).should.throw();
+      (function () {
+        middleware.replace({}, mw);
+      }).should.throw();
+    });
+  });
+
+  describe('remove', function () {
+
+    it('should be exposed as a method', function () {
+      middleware.should.have.property('remove');
+      middleware.remove.should.be.a.Function;
+    });
+
+    it('should remove given middleware by function', function () {
+      var mw = mocks.http.stack[2].handle,
+        removed = middleware.remove(mw);
+      mocks.http.stack.should.have.lengthOf(4);
+      removed.should.equal(mw);
+    });
+
+    it('should remove given middleware by name', function () {
+      var mw = mocks.http.stack[2].handle,
+        removed = middleware.remove('three');
+      mocks.http.stack.should.have.lengthOf(4);
+      removed.should.equal(mw);
+    });
+
+    it('should throw on missing remove middleware', function () {
+      var mw = function () {};
+      (function () {
+        middleware.remove();
+      }).should.throw();
+      (function () {
+        middleware.remove(mw);
+      }).should.throw();
+      (function () {
+        middleware.remove(undefined);
+      }).should.throw();
+      (function () {
+        middleware.remove(null);
+      }).should.throw();
+      (function () {
+        middleware.remove('xxx');
+      }).should.throw();
+      (function () {
+        middleware.remove(123);
+      }).should.throw();
+      (function () {
+        middleware.remove({});
       }).should.throw();
     });
   });

@@ -145,7 +145,7 @@ module.exports = function (appPath) {
       policies:     appPath + '/api/policies',
       adapters:     appPath + '/api/adapters',
       hooks:        appPath + '/api/hooks',
-      'public':     appPath + '/.tmp/public',
+      'static':     appPath + '/.tmp/public',
       templates:    appPath + '/assets/templates',
       dependencies: appPath + '/dependencies',
       views:        appPath + '/views',
@@ -181,9 +181,11 @@ module.exports = function (appPath) {
       }
     },
 
-    // HTTP cache configuration
-    cache: {
-      maxAge: 31557600000
+    'static': {
+      maxAge: 31557600000,
+      hidden: false,
+      redirect: true,
+      index: 'index.html'
     },
 
     cookies: {

@@ -1,2 +1,5 @@
-// Start sails and pass it command line arguments
-require('sails').lift(require('optimist').argv);
+// Start sails
+var Sails = require('sails'),
+  sails = new Sails();
+
+sails.lift(function () {});

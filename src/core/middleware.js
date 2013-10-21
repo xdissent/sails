@@ -7,8 +7,9 @@ module.exports = function (http, log) {
   function Middleware () {
   }
 
-  Middleware.prototype.use = function(route, fn, index) {
+  Middleware.prototype.use = function(route, fn, index, replace) {
     if (_.isFunction(route)) {
+      replace = index;
       index = fn;
       fn = route;
       route = null;
@@ -22,6 +23,11 @@ module.exports = function (http, log) {
       throw new Error('Invalid middleware index');
     }
 
+    if (_.isUndefined(replace) || _.isNull(replace)) replace = 0;
+    if (!_.isNumber(replace) || replace > (index < 0 ? 0 - index : http.stack.length - index) || replace < 0) {
+      throw new Error('Invalid replacements');
+    }
+
     // Save the function name and add it to the http middleware temporarily.
     var name = fn.name;
     http.use(route, fn);
@@ -32,7 +38,7 @@ module.exports = function (http, log) {
     mw.handle.name = name;
 
     // Add the middleware back to the stack.
-    http.stack.splice(index, 0, mw);
+    http.stack.splice(index, replace, mw);
 
     log.verbose('Using middleware', name, 'for route', route, 'at index', index);
   };
@@ -58,7 +64,24 @@ module.exports = function (http, log) {
     if (!_.isFunction(fn)) fn = route, route = null;
     var index = this.indexOf(after);
     if (index < 0) throw new Error('Could not find after middleware');
-    this.use(route, fn, this.indexOf(after) + 1);
+    this.use(route, fn, index + 1);
+  };
+
+  Middleware.prototype.replace = function (replace, route, fn) {
+    if (!_.isFunction(fn)) fn = route, route = null;
+    var index = this.indexOf(replace);
+    if (index < 0) throw new Error('Could not find replace middleware');
+    this.use(route, fn, index, 1);
+  };
+
+  Middleware.prototype.remove = function (remove) {
+    var index = this.indexOf(remove);
+    if (index < 0) throw new Error('Could not find remove middleware');
+    var removed = http.stack.splice(index, 1);
+    if (!removed || !removed.length || removed.length < 1) {
+      throw new Error('Could not remove middleware');
+    }
+    return removed[0].handle;
   };
 
   Middleware.prototype.indexOf = function(find) {
