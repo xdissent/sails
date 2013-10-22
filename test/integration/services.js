@@ -11,7 +11,6 @@ describe('services', function () {
       appPath: path.resolve(__dirname, '../fixtures/services'),
       hooks: ['services'],
       server: {port: 0, host: 'localhost'},
-      log: {level: 'verbose'},
       routes: {
         '/': function (req, res, next) {
           res.send(200, sails.hooks.services.test.test);
