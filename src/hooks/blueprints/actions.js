@@ -5,9 +5,8 @@ module.exports = function () {
     routes: function (controller) {
       var routes = {};
       _.each(controller, function (action, name) {
-        if (!_.isArray(action) && !_.isFunction(action) && action !== 'blueprints') {
-          return;
-        }
+        if (name === 'blueprints') return;
+        if (!_.isArray(action) && !_.isFunction(action)) return;
         routes['/' + name] = {
           controller: controller.identity,
           action: name,
