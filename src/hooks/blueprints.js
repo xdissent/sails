@@ -98,9 +98,9 @@ module.exports = function (_container, config, controllers, moduleLoader, router
 
   Blueprints.prototype._legacyConfig = function (controller) {
     var legacy = _.extend({}, config.controllers.blueprints, controller.blueprint);
-    legacy.enabled = _.compact(_.filter(config.blueprints, function (blueprint) {
+    legacy.enabled = _.compact(_.flatten(_.filter(config.blueprints, function (blueprint) {
       return legacy[blueprint] !== false;
-    }));
+    })));
     return legacy;
   };
 
