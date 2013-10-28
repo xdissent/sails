@@ -104,6 +104,7 @@ module.exports = function (config, server, log, session, cookies, http) {
     socket.on('request', function (method, url, body, headers, callback) {
 
       var req = {
+        connection: {},
         method: method,
         ip: socket.handshake.address.address,
         port: socket.handshake.address.port,
