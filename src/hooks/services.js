@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-module.exports = function (config, moduleLoader, log, watcher, globals) {
+module.exports = function (_container, config, moduleLoader, log, watcher, globals, done) {
 
   log = log.namespace('services');
 
@@ -24,11 +24,15 @@ module.exports = function (config, moduleLoader, log, watcher, globals) {
       }
     });
 
-    this.reload();
+    this.reload(done);
   }
 
-  Services.prototype.reload = function() {
+  Services.prototype.reload = function(callback) {
     log.verbose('Loading services from', config.paths.services);
+
+    callback = callback || function (err) {
+      if (err) throw err;
+    };
 
     this.unglobalize();
 
@@ -39,23 +43,55 @@ module.exports = function (config, moduleLoader, log, watcher, globals) {
       replaceExpr: /Service/,
       force: true
     }, function modulesLoaded (err, modules) {
-      if (err) throw err;
+      if (err) return callback(err);
 
       var current = _.keys(modules),
         previous = _.keys(this._services),
-        removed = _.difference(previous, current);
+        removed = _.difference(previous, current),
+        added = _.difference(current, previous);
 
-      _.extend(self._services, modules);
-      _.extend(self, modules);
-      _.each(removed, function (key) {
-        delete self._services[key];
-        delete self[key];
+
+      _.each(added, function (name) {
+        _container.register(name, modules[name]);
+      });
+
+      _container.register('__services', self._loader(added));
+
+      _container.get('__services', function (err, services) {
+        if (err) return callback(err);
+        _.each(services, function (service, name) {
+          service.globalId = modules[name].globalId;
+        });
+        _.extend(self._services, services);
+        _.extend(self, services);
+        _.each(removed, function (key) {
+          delete self._services[key];
+          delete self[key];
+        });
+
+        log.verbose('Loaded services', self._services);
+
+        self.globalize();
+        self._watch();
+        callback(null, self);
       });
     });
-    log.verbose('Loaded services', this._services);
+  };
 
-    this.globalize();
-    this._watch();
+  Services.prototype._loader =  function (names) {
+    var loader = function () {
+      var services = {}, args = _.clone(arguments);
+      _.each(names, function (name, index) {
+        services[name] = args[index];
+        services[name].identity = name;
+        log.verbose('Registering service', name);
+      });
+      return services;
+    };
+    loader.toString = function () {
+      return 'function (' + names.join(', ') + ') {}';
+    };
+    return loader;
   };
 
   Services.prototype._watch = function() {
