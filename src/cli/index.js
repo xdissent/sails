@@ -73,5 +73,6 @@ _.each(subcommands, function (subcommand) {
 
 module.exports = function cli () {
   program.parse.apply(program, arguments);
-  if (!program.args.length) program.help();
+
+  if (program.rawArgs.length == 2) program.help();
 };
